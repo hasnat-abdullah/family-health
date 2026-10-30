@@ -1,7 +1,7 @@
 # Family Health
 
-[![CI](https://github.com/hasnat-abdullah/family_health/actions/workflows/ci.yml/badge.svg)](https://github.com/hasnat-abdullah/family_health/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/hasnat-abdullah/family_health)](https://github.com/hasnat-abdullah/family_health/releases/latest)
+[![CI](https://github.com/hasnat-abdullah/family-health/actions/workflows/ci.yml/badge.svg)](https://github.com/hasnat-abdullah/family-health/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/hasnat-abdullah/family-health)](https://github.com/hasnat-abdullah/family-health/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Private medical records for the whole family, on macOS, iPhone, iPad and Android, built with Flutter. Offline by default: nothing leaves the device unless you turn on AI reading with a cloud provider.
@@ -55,7 +55,7 @@ All screenshots show the made-up demo family.
 
 ## Install
 
-Download the file for your device from the [latest release](https://github.com/hasnat-abdullah/family_health/releases/latest). `SHA256SUMS.txt` lists a checksum for each one.
+Download the file for your device from the [latest release](https://github.com/hasnat-abdullah/family-health/releases/latest). `SHA256SUMS.txt` lists a checksum for each one.
 
 | Device | Needs | File |
 |---|---|---|
@@ -108,8 +108,8 @@ You need [Flutter](https://docs.flutter.dev/get-started/install) 3.47 or later (
 | Android | Android Studio or the Android SDK, and JDK 17 |
 
 ```sh
-git clone https://github.com/hasnat-abdullah/family_health.git
-cd family_health
+git clone https://github.com/hasnat-abdullah/family-health.git
+cd family-health
 flutter pub get
 flutter doctor                    # shows anything still missing
 flutter doctor --android-licenses # Android only, once

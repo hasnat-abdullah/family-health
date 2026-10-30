@@ -4,7 +4,7 @@ Family Health stores private medical records, so security reports are very welco
 
 ## Reporting a problem
 
-Please don't open a public issue. Use [private vulnerability reporting](https://github.com/hasnat-abdullah/family_health/security/advisories/new) and include the steps to reproduce it. I aim to reply within a week. Never include real medical records or API keys in a report.
+Please don't open a public issue. Use [private vulnerability reporting](https://github.com/hasnat-abdullah/family-health/security/advisories/new) and include the steps to reproduce it. I aim to reply within a week. Never include real medical records or API keys in a report.
 
 Only the latest release is supported.
 
