@@ -3,10 +3,10 @@
 //   flutter test integration_test/device_services_test.dart -d <device>
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:medi_archive/data/database.dart';
-import 'package:medi_archive/data/models.dart';
-import 'package:medi_archive/security/vault.dart';
-import 'package:medi_archive/services/reminders.dart';
+import 'package:family_health/data/database.dart';
+import 'package:family_health/data/models.dart';
+import 'package:family_health/security/vault.dart';
+import 'package:family_health/services/reminders.dart';
 
 import 'harness.dart';
 

@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:medi_archive/main.dart';
+import 'package:family_health/main.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -77,7 +77,7 @@ void main() {
         final key = GlobalKey();
         await tester.pumpWidget(const SizedBox());
         current = '${c.name}/01_home';
-        await tester.pumpWidget(RepaintBoundary(key: key, child: const MediArchiveApp()));
+        await tester.pumpWidget(RepaintBoundary(key: key, child: const FamilyHealthApp()));
         await settle(tester);
 
         Future<void> check(String screen) async {

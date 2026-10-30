@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:medi_archive/data/models.dart';
-import 'package:medi_archive/services/ai/ai_client.dart';
-import 'package:medi_archive/services/ai/extraction.dart';
-import 'package:medi_archive/services/ai/extraction_prompt.dart';
-import 'package:medi_archive/services/medicine_schedule.dart';
+import 'package:family_health/data/models.dart';
+import 'package:family_health/services/ai/ai_client.dart';
+import 'package:family_health/services/ai/extraction.dart';
+import 'package:family_health/services/ai/extraction_prompt.dart';
+import 'package:family_health/services/medicine_schedule.dart';
 
 Map<String, Object?> row(String name, String? value, {String? unit, String? range, String? flag, bool legible = true}) => {
   'test_name_printed': name,

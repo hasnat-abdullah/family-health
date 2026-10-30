@@ -5,10 +5,10 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:medi_archive/security/vault.dart';
-import 'package:medi_archive/services/ai/ai_client.dart';
-import 'package:medi_archive/services/ai/ai_config.dart';
-import 'package:medi_archive/services/ai/extraction_prompt.dart';
+import 'package:family_health/security/vault.dart';
+import 'package:family_health/services/ai/ai_client.dart';
+import 'package:family_health/services/ai/ai_config.dart';
+import 'package:family_health/services/ai/extraction_prompt.dart';
 
 const _request = AiRequest(system: 'sys', prompt: 'go', schema: pingSchema);
 

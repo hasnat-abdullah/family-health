@@ -26,19 +26,19 @@ Future<void> start() async {
     runApp(StartupErrorApp(error: e));
     return;
   }
-  runApp(const MediArchiveApp());
+  runApp(const FamilyHealthApp());
   // Not awaited: reminders must never hold up the first frame.
   Reminders.init();
 }
 
-class MediArchiveApp extends StatefulWidget {
-  const MediArchiveApp({super.key});
+class FamilyHealthApp extends StatefulWidget {
+  const FamilyHealthApp({super.key});
 
   @override
-  State<MediArchiveApp> createState() => _MediArchiveAppState();
+  State<FamilyHealthApp> createState() => _FamilyHealthAppState();
 }
 
-class _MediArchiveAppState extends State<MediArchiveApp> {
+class _FamilyHealthAppState extends State<FamilyHealthApp> {
   late final AppLifecycleListener _lifecycle;
 
   @override

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:medi_archive/security/vault.dart';
+import 'package:family_health/security/vault.dart';
 
 void main() {
   test('creates and persists a key on first run, reuses it after', () async {

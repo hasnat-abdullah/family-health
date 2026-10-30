@@ -6,12 +6,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:medi_archive/main.dart';
-import 'package:medi_archive/security/app_lock.dart';
-import 'package:medi_archive/security/vault.dart';
-import 'package:medi_archive/services/file_io.dart';
-import 'package:medi_archive/widgets/attachment_strip.dart';
-import 'package:medi_archive/widgets/common.dart';
+import 'package:family_health/main.dart';
+import 'package:family_health/security/app_lock.dart';
+import 'package:family_health/security/vault.dart';
+import 'package:family_health/services/file_io.dart';
+import 'package:family_health/widgets/attachment_strip.dart';
+import 'package:family_health/widgets/common.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -42,7 +42,7 @@ void main() {
     final device1 = TestStorage('e2e');
     await device1.wipe();
     await device1.boot();
-    await tester.pumpWidget(const MediArchiveApp());
+    await tester.pumpWidget(const FamilyHealthApp());
     await settle(tester);
 
     // ---- 1. First run → add a member.
@@ -176,7 +176,7 @@ void main() {
     final device2 = TestStorage('e2e2');
     await device2.wipe();
     await device2.boot();
-    await tester.pumpWidget(const MediArchiveApp());
+    await tester.pumpWidget(const FamilyHealthApp());
     await settle(tester);
     expect(AppLock.enabled, isFalse, reason: 'lock setting is per device');
     expect(find.text('Start with your family'), findsOneWidget);

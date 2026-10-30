@@ -2,8 +2,8 @@
 //   flutter test integration_test/report_reading_test.dart -d <device>
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:medi_archive/services/report_parser.dart';
-import 'package:medi_archive/services/report_reader.dart';
+import 'package:family_health/services/report_parser.dart';
+import 'package:family_health/services/report_reader.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import 'harness.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:medi_archive/data/models.dart';
-import 'package:medi_archive/services/csv_service.dart';
+import 'package:family_health/data/models.dart';
+import 'package:family_health/services/csv_service.dart';
 
 void main() {
   group('Medication schedule', () {
