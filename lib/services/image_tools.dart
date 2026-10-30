@@ -12,7 +12,10 @@ class ImageTools {
     final descriptor = await ui.ImageDescriptor.encoded(buffer);
     final longest = descriptor.width > descriptor.height ? descriptor.width : descriptor.height;
     final scale = longest > maxSide ? maxSide / longest : 1.0;
-    final codec = await descriptor.instantiateCodec(targetWidth: (descriptor.width * scale).round(), targetHeight: (descriptor.height * scale).round());
+    final codec = await descriptor.instantiateCodec(
+      targetWidth: (descriptor.width * scale).round(),
+      targetHeight: (descriptor.height * scale).round(),
+    );
     final image = (await codec.getNextFrame()).image;
     try {
       final rgba = (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!.buffer.asUint8List();

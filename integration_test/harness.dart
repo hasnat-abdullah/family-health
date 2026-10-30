@@ -44,7 +44,8 @@ class TestStorage {
   }
 
   Future<String> get dbPath => AppDb.pathFor(config.dbName);
-  Future<Directory> get filesDir async => Directory(p.join((await getApplicationSupportDirectory()).path, config.filesFolder));
+  Future<Directory> get filesDir async =>
+      Directory(p.join((await getApplicationSupportDirectory()).path, config.filesFolder));
 
   Future<void> boot({bool demo = false}) async {
     await bootstrap(config: config, keyStore: keyStore, seedDemoData: demo);
@@ -82,7 +83,11 @@ Future<void> settle(WidgetTester tester, {int rounds = 15}) async {
   // Let page transitions finish so taps land where widgets end up. Screens
   // with a spinning progress indicator never settle, hence the short timeout.
   try {
-    await tester.pumpAndSettle(const Duration(milliseconds: 50), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 2));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 50),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 2),
+    );
   } on FlutterError {
     // still animating (spinner) — fine
   }
@@ -93,12 +98,22 @@ Future<void> waitFor(WidgetTester tester, Finder finder, {Duration timeout = con
   final end = DateTime.now().add(timeout);
   while (finder.evaluate().isEmpty) {
     if (DateTime.now().isAfter(end)) {
-      final onScreen = find.byType(Text).hitTestable().evaluate().map((e) => (e.widget as Text).data).whereType<String>().join(' | ');
-      final all = find.byType(Text).evaluate().map((e) {
-        final box = e.renderObject as RenderBox?;
-        final at = box != null && box.hasSize ? box.localToGlobal(Offset.zero) : null;
-        return '${(e.widget as Text).data}@${at?.dx.round()},${at?.dy.round()}';
-      }).join(' | ');
+      final onScreen = find
+          .byType(Text)
+          .hitTestable()
+          .evaluate()
+          .map((e) => (e.widget as Text).data)
+          .whereType<String>()
+          .join(' | ');
+      final all = find
+          .byType(Text)
+          .evaluate()
+          .map((e) {
+            final box = e.renderObject as RenderBox?;
+            final at = box != null && box.hasSize ? box.localToGlobal(Offset.zero) : null;
+            return '${(e.widget as Text).data}@${at?.dx.round()},${at?.dy.round()}';
+          })
+          .join(' | ');
       final size = tester.view.physicalSize / tester.view.devicePixelRatio;
       throw TestFailure('Timed out waiting for $finder\nOn screen: $onScreen\nAll ($size): $all');
     }
@@ -117,8 +132,7 @@ Future<void> tapText(WidgetTester tester, String text, {bool last = false}) asyn
 }
 
 /// Text field inside the input decorated with [label].
-Finder fieldLabeled(String label) =>
-    find.ancestor(of: find.text(label), matching: find.byType(TextField)).first;
+Finder fieldLabeled(String label) => find.ancestor(of: find.text(label), matching: find.byType(TextField)).first;
 
 /// Sets a text field's value directly (more reliable than simulated typing
 /// when several obscured fields swap focus).

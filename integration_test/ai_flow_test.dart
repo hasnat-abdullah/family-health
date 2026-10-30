@@ -80,7 +80,12 @@ Map<String, Object?> document({
   'patient': {'name_printed': patient, 'age_printed': null, 'sex_printed': null},
   'other_patients': <String>[],
   'facility': null,
-  'doctor': {'name_printed': doctor, 'specialty_printed': 'Medicine', 'hospital_printed': 'City General Hospital', 'phone_printed': null},
+  'doctor': {
+    'name_printed': doctor,
+    'specialty_printed': 'Medicine',
+    'hospital_printed': 'City General Hospital',
+    'phone_printed': null,
+  },
   'lab_results': rows,
   'medicines': medicines,
   'notes_printed': null,
@@ -119,7 +124,12 @@ void main() {
     await settle(tester);
 
     // ---- 1. The server is down hard: friendly error, file kept, retry works.
-    server.reply = (_) => (404, {'error': {'message': 'model "test-vision" not found'}});
+    server.reply = (_) => (
+      404,
+      {
+        'error': {'message': 'model "test-vision" not found'},
+      },
+    );
     final pdf = await fixture('cbc_text.pdf');
     FileIO.debugPick = (_) async => [pdf];
     await tester.tap(find.byTooltip('Import a document'));
@@ -137,15 +147,14 @@ void main() {
     expect(sent, isNot(contains('Imran')));
 
     // ---- 2. Retry: names the other member, and one value is invented.
-    server.reply = (_) => modelSays(document(
-      patient: 'Mr. Imran',
-      doctor: 'Dr. Rafiq Islam, MBBS',
-      followDays: 30,
-      rows: [
-        labRow('Hemoglobin', '99.9', 'g/dL', '13 - 17'),
-        labRow('Ferritin', '42', 'ng/mL', '30 - 400'),
-      ],
-    ));
+    server.reply = (_) => modelSays(
+      document(
+        patient: 'Mr. Imran',
+        doctor: 'Dr. Rafiq Islam, MBBS',
+        followDays: 30,
+        rows: [labRow('Hemoglobin', '99.9', 'g/dL', '13 - 17'), labRow('Ferritin', '42', 'ng/mL', '30 - 400')],
+      ),
+    );
     await tapText(tester, 'Try again');
     await waitFor(tester, find.textContaining('filed under Imran'));
     expect(find.text('Ferritin', skipOffstage: false), findsOneWidget);
@@ -182,14 +191,24 @@ void main() {
     expect(server.requests, isEmpty);
 
     // ---- 4. A prescription for the wife, same doctor: medicines and reminders in one save.
-    server.reply = (_) => modelSays(document(
-      type: 'prescription',
-      patient: 'Nadia Rahman',
-      doctor: 'Prof. Dr. Rafiq Islam',
-      medicines: [
-        {'name_printed': 'Napa', 'strength_printed': '500 mg', 'schedule_printed': '১+০+১', 'duration_printed': '৭ দিন', 'instructions_printed': 'খাবার পরে', 'legible': true, 'source_text': 'Napa'},
-      ],
-    ));
+    server.reply = (_) => modelSays(
+      document(
+        type: 'prescription',
+        patient: 'Nadia Rahman',
+        doctor: 'Prof. Dr. Rafiq Islam',
+        medicines: [
+          {
+            'name_printed': 'Napa',
+            'strength_printed': '500 mg',
+            'schedule_printed': '১+০+১',
+            'duration_printed': '৭ দিন',
+            'instructions_printed': 'খাবার পরে',
+            'legible': true,
+            'source_text': 'Napa',
+          },
+        ],
+      ),
+    );
     final photo = await fixture('cbc_photo.jpg');
     FileIO.debugPick = (_) async => [photo];
     await tester.tap(find.byTooltip('Import a document'));

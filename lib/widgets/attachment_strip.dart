@@ -24,7 +24,10 @@ class AttachmentStrip extends StatelessWidget {
           border: Border.all(color: theme.colorScheme.outlineVariant),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Text('No original attached', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+        child: Text(
+          'No original attached',
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        ),
       );
     }
     return SizedBox(
@@ -35,42 +38,54 @@ class AttachmentStrip extends StatelessWidget {
         separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, i) {
           final a = attachments[i];
-          return Stack(children: [
-            Material(
-              color: theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AttachmentViewer(attachment: a))),
-                child: SizedBox(
-                  width: 92,
-                  height: 120,
-                  child: a.isPdf
-                      ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.picture_as_pdf_rounded, size: 36, color: theme.colorScheme.primary),
-                          const SizedBox(height: 6),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 6),
-                            child: Text(a.originalName, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: theme.textTheme.labelSmall),
-                          ),
-                        ])
-                      : _DecryptedImage(attachment: a, thumbnail: true),
+          return Stack(
+            children: [
+              Material(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () =>
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => AttachmentViewer(attachment: a))),
+                  child: SizedBox(
+                    width: 92,
+                    height: 120,
+                    child: a.isPdf
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.picture_as_pdf_rounded, size: 36, color: theme.colorScheme.primary),
+                              const SizedBox(height: 6),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Text(
+                                  a.originalName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: theme.textTheme.labelSmall,
+                                ),
+                              ),
+                            ],
+                          )
+                        : _DecryptedImage(attachment: a, thumbnail: true),
+                  ),
                 ),
               ),
-            ),
-            if (onRemove != null)
-              Positioned(
-                top: 2,
-                right: 2,
-                child: IconButton.filledTonal(
-                  tooltip: 'Remove',
-                  visualDensity: VisualDensity.compact,
-                  iconSize: 16,
-                  icon: const Icon(Icons.close_rounded),
-                  onPressed: () => onRemove!(a),
+              if (onRemove != null)
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: IconButton.filledTonal(
+                    tooltip: 'Remove',
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 16,
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => onRemove!(a),
+                  ),
                 ),
-              ),
-          ]);
+            ],
+          );
         },
       ),
     );
@@ -131,7 +146,9 @@ class _DecryptedImageState extends State<_DecryptedImage> {
     future: _bytes,
     builder: (context, snap) {
       if (snap.hasError) return const Center(child: Icon(Icons.broken_image_outlined));
-      if (!snap.hasData) return const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
+      if (!snap.hasData) {
+        return const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)));
+      }
       return Image.memory(
         snap.data!,
         fit: widget.thumbnail ? BoxFit.cover : BoxFit.contain,

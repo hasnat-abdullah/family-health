@@ -132,7 +132,9 @@ class ReportEditorScreen extends StatefulWidget {
 class _ReportEditorScreenState extends State<ReportEditorScreen> {
   late final String _reportId = widget.report?.id ?? widget.reportId ?? newId();
   late DocType _type = widget.report?.type ?? widget.type ?? DocType.lab;
-  late final _title = TextEditingController(text: widget.report?.title ?? widget.title ?? (_type == DocType.lab ? 'CBC' : _type.label));
+  late final _title = TextEditingController(
+    text: widget.report?.title ?? widget.title ?? (_type == DocType.lab ? 'CBC' : _type.label),
+  );
   late final _lab = TextEditingController(text: widget.report?.lab);
   late final _notes = TextEditingController(text: widget.report?.notes);
   late DateTime _date = widget.report?.date ?? widget.date ?? DateTime.now();
@@ -215,13 +217,19 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       _aiStage = 'Preparing pages…';
     });
     try {
-      final prepared = await DocumentPrep.prepare(_attachments, withImages: settings.sendImages, lines: _localLines, cancel: cancel);
+      final prepared = await DocumentPrep.prepare(
+        _attachments,
+        withImages: settings.sendImages,
+        lines: _localLines,
+        cancel: cancel,
+      );
       if (!mounted) return;
       setState(() {
         _localLines = prepared.lines;
         _aiStage = 'Reading with ${settings.provider.label}…';
       });
-      final doc = await AiReader(AiBackend.from(settings, settings.provider)).read(images: prepared.images, localLines: prepared.lines, cancel: cancel);
+      final doc = await AiReader(AiBackend.from(settings, settings.provider))
+          .read(images: prepared.images, localLines: prepared.lines, cancel: cancel);
       if (!mounted) return;
       setState(() => _aiStage = 'Checking…');
 
@@ -233,7 +241,9 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
           issues.add('The document names ${patient.printedName}, so this is filed under ${patient.member!.name}.');
           _member = patient.member;
         } else {
-          issues.add('The document names ${patient.printedName}, who looks like ${patient.member!.name}, not ${_member?.name}. Is this the right record?');
+          issues.add(
+            'The document names ${patient.printedName}, who looks like ${patient.member!.name}, not ${_member?.name}. Is this the right record?',
+          );
         }
       } else if (patient.status == PatientStatus.noMatch) {
         issues.add(
@@ -244,7 +254,9 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       }
       if (patient.status == PatientStatus.matchesCurrent) _member ??= patient.member;
       if (prepared.skippedPages > 0) {
-        issues.add('Only the first ${prepared.images.length} pages were read; ${prepared.skippedPages} more were skipped. Add anything from them by hand.');
+        issues.add(
+          'Only the first ${prepared.images.length} pages were read; ${prepared.skippedPages} more were skipped. Add anything from them by hand.',
+        );
       }
 
       final draft = ExtractionChecker(
@@ -255,11 +267,15 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       if (!mounted) return;
       setState(() => _applyDraft(draft, [...issues, ...draft.issues], settings.sourceLabel));
       // The summary holds warnings such as a different patient: bring it into view.
-      if (_scroll.hasClients) unawaited(_scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut));
+      if (_scroll.hasClients) {
+        unawaited(_scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut));
+      }
     } on AiException catch (e) {
       if (mounted && e.kind != AiErrorKind.cancelled) {
         setState(() => _aiError = e);
-        if (_scroll.hasClients) unawaited(_scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut));
+        if (_scroll.hasClients) {
+          unawaited(_scroll.animateTo(0, duration: const Duration(milliseconds: 250), curve: Curves.easeOut));
+        }
       }
     } catch (e) {
       // The original and on-device values are safe; this must never lose the screen.
@@ -289,7 +305,12 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       if (doctor.matchId != null) {
         _doctorId = doctor.matchId;
       } else {
-        _newDoctor = Doctor(name: doctor.name, specialty: doctor.specialty, hospital: doctor.hospital, phone: doctor.phone);
+        _newDoctor = Doctor(
+          name: doctor.name,
+          specialty: doctor.specialty,
+          hospital: doctor.hospital,
+          phone: doctor.phone,
+        );
       }
     }
 
@@ -410,7 +431,9 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       showMessage(context, 'Choose whose record this is.');
       return;
     }
-    final incomplete = _medicines.where((m) => m.times == null || m.times!.isEmpty || (m.days == null && !m.ongoing)).toList();
+    final incomplete = _medicines
+        .where((m) => m.times == null || m.times!.isEmpty || (m.days == null && !m.ongoing))
+        .toList();
     if (incomplete.isNotEmpty) {
       showMessage(context, 'Set the dose times and duration for ${incomplete.first.name}, or remove it.');
       return;
@@ -456,7 +479,9 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
     if (results.isEmpty && _attachments.isEmpty && report.notes == null) {
       showMessage(
         context,
-        _type == DocType.lab ? 'Add at least one value or attach the original report.' : 'Attach the document or add a note.',
+        _type == DocType.lab
+            ? 'Add at least one value or attach the original report.'
+            : 'Attach the document or add a note.',
       );
       return;
     }
@@ -470,7 +495,16 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
     _saved = true;
     for (final m in _medicines) {
       await AppDb.instance.saveMedication(
-        Medication(memberId: member.id, reportId: report.id, name: m.name, dose: m.dose, times: [...m.times!]..sort(), startDate: _date, days: m.ongoing ? null : m.days, instructions: m.instructions),
+        Medication(
+          memberId: member.id,
+          reportId: report.id,
+          name: m.name,
+          dose: m.dose,
+          times: [...m.times!]..sort(),
+          startDate: _date,
+          days: m.ongoing ? null : m.days,
+          instructions: m.instructions,
+        ),
       );
     }
     if (_medicines.isNotEmpty || _followUp != null) await Reminders.requestPermission();
@@ -489,13 +523,23 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
   }
 
   Future<void> _pickDate() async {
-    final d = await showDatePicker(context: context, initialDate: _date, firstDate: DateTime(1950), lastDate: DateTime.now());
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(1950),
+      lastDate: DateTime.now(),
+    );
     if (d != null) setState(() => _date = d);
   }
 
   Future<void> _pickFollowUp() async {
     final now = DateTime.now();
-    final d = await showDatePicker(context: context, initialDate: _followUp ?? now, firstDate: now, lastDate: DateTime(now.year + 5));
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _followUp ?? now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 5),
+    );
     if (d != null) setState(() => _followUp = d);
   }
 
@@ -636,11 +680,13 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
                   for (final t in DocType.values)
                     DropdownMenuItem(
                       value: t,
-                      child: Row(children: [
-                        Icon(docIcon(t), size: 20),
-                        const SizedBox(width: 10),
-                        Flexible(child: Text(t.label, overflow: TextOverflow.ellipsis)),
-                      ]),
+                      child: Row(
+                        children: [
+                          Icon(docIcon(t), size: 20),
+                          const SizedBox(width: 10),
+                          Flexible(child: Text(t.label, overflow: TextOverflow.ellipsis)),
+                        ],
+                      ),
                     ),
                 ],
                 onChanged: (t) => setState(() => _type = t ?? _type),
@@ -662,7 +708,10 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
                     child: InkWell(
                       onTap: _pickDate,
                       child: InputDecorator(
-                        decoration: const InputDecoration(labelText: 'Report date', suffixIcon: Icon(Icons.calendar_today_rounded)),
+                        decoration: const InputDecoration(
+                          labelText: 'Report date',
+                          suffixIcon: Icon(Icons.calendar_today_rounded),
+                        ),
                         child: Text(dateFmt.format(_date)),
                       ),
                     ),
@@ -679,11 +728,22 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
                 key: ValueKey('doctor-$_doctorId-${_newDoctor?.id}-${_doctors.length}'),
                 initialValue: _newDoctor != null ? _foundDoctor : (_doctorId ?? _noDoctor),
                 isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Doctor (optional)', prefixIcon: Icon(Icons.medical_services_outlined)),
+                decoration: const InputDecoration(
+                  labelText: 'Doctor (optional)',
+                  prefixIcon: Icon(Icons.medical_services_outlined),
+                ),
                 items: [
                   const DropdownMenuItem(value: _noDoctor, child: Text('None')),
-                  for (final d in _doctors) DropdownMenuItem(value: d.id, child: Text(d.name, overflow: TextOverflow.ellipsis)),
-                  if (_newDoctor != null) DropdownMenuItem(value: _foundDoctor, child: Text('New: ${_newDoctor!.name}', overflow: TextOverflow.ellipsis)),
+                  for (final d in _doctors)
+                    DropdownMenuItem(
+                      value: d.id,
+                      child: Text(d.name, overflow: TextOverflow.ellipsis),
+                    ),
+                  if (_newDoctor != null)
+                    DropdownMenuItem(
+                      value: _foundDoctor,
+                      child: Text('New: ${_newDoctor!.name}', overflow: TextOverflow.ellipsis),
+                    ),
                   const DropdownMenuItem(value: _addDoctor, child: Text('Add a doctor…')),
                 ],
                 onChanged: _pickDoctor,
@@ -691,10 +751,19 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  Expanded(child: Text(_type == DocType.lab ? 'Original report' : 'Document', style: theme.textTheme.titleSmall)),
+                  Expanded(
+                    child: Text(
+                      _type == DocType.lab ? 'Original report' : 'Document',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                  ),
                   if (_reading) const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                   if (_attachments.isNotEmpty && !_aiRunning)
-                    TextButton.icon(onPressed: _reading ? null : _runAi, icon: const Icon(Icons.auto_awesome_outlined), label: const Text('Read with AI')),
+                    TextButton.icon(
+                      onPressed: _reading ? null : _runAi,
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      label: const Text('Read with AI'),
+                    ),
                   TextButton.icon(
                     onPressed: _reading ? null : _addFiles,
                     icon: const Icon(Icons.attach_file_rounded),
@@ -720,7 +789,11 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
                       labelText: 'Follow-up (optional)',
                       suffixIcon: _followUp == null
                           ? const Icon(Icons.event_rounded)
-                          : IconButton(tooltip: 'Clear', icon: const Icon(Icons.clear), onPressed: () => setState(() => _followUp = null)),
+                          : IconButton(
+                              tooltip: 'Clear',
+                              icon: const Icon(Icons.clear),
+                              onPressed: () => setState(() => _followUp = null),
+                            ),
                     ),
                     child: Text(_followUp == null ? 'None' : dateFmt.format(_followUp!)),
                   ),
@@ -759,13 +832,18 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
         Card(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Expanded(child: Text(_aiStage)),
-                TextButton(onPressed: () => _aiCancel?.cancel(), child: const Text('Cancel')),
-              ]),
-              const LinearProgressIndicator(),
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(child: Text(_aiStage)),
+                    TextButton(onPressed: () => _aiCancel?.cancel(), child: const Text('Cancel')),
+                  ],
+                ),
+                const LinearProgressIndicator(),
+              ],
+            ),
           ),
         ),
       ];
@@ -777,24 +855,38 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
           color: colors.errorContainer,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(error.message, style: TextStyle(color: colors.onErrorContainer)),
-              const SizedBox(height: 4),
-              Text('Your file is safe. You can save it now and read it later.', style: theme.textTheme.bodySmall?.copyWith(color: colors.onErrorContainer)),
-              if (error.detail != null)
-                Text(error.detail!, maxLines: 3, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall?.copyWith(color: colors.onErrorContainer)),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: Wrap(children: [
-                  if (error.needsSettings)
-                    TextButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiSettingsScreen())),
-                      child: const Text('AI settings'),
-                    ),
-                  TextButton(onPressed: _runAi, child: const Text('Try again')),
-                ]),
-              ),
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(error.message, style: TextStyle(color: colors.onErrorContainer)),
+                const SizedBox(height: 4),
+                Text(
+                  'Your file is safe. You can save it now and read it later.',
+                  style: theme.textTheme.bodySmall?.copyWith(color: colors.onErrorContainer),
+                ),
+                if (error.detail != null)
+                  Text(
+                    error.detail!,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(color: colors.onErrorContainer),
+                  ),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Wrap(
+                    children: [
+                      if (error.needsSettings)
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.push(context, MaterialPageRoute(builder: (_) => const AiSettingsScreen())),
+                          child: const Text('AI settings'),
+                        ),
+                      TextButton(onPressed: _runAi, child: const Text('Try again')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ];
@@ -808,27 +900,38 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
         color: colors.secondaryContainer,
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              total == 0
-                  ? 'No values were found. The original is attached.'
-                  : toCheck == 0
-                  ? 'Read $total item${total == 1 ? '' : 's'}, all matched on-device. Check them against the original, then save.'
-                  : 'Read $total item${total == 1 ? '' : 's'}. $toCheck need${toCheck == 1 ? 's' : ''} checking against the original.',
-              style: TextStyle(color: colors.onSecondaryContainer, fontWeight: FontWeight.w600),
-            ),
-            if (!draft.hadLocalText && total > 0)
-              Text("The device couldn't read this page by itself, so nothing could be cross-checked.", style: TextStyle(color: colors.onSecondaryContainer)),
-            for (final issue in _aiIssues)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(Icons.warning_amber_rounded, size: 18, color: colors.onSecondaryContainer),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(issue, style: TextStyle(color: colors.onSecondaryContainer))),
-                ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                total == 0
+                    ? 'No values were found. The original is attached.'
+                    : toCheck == 0
+                    ? 'Read $total item${total == 1 ? '' : 's'}, all matched on-device. Check them against the original, then save.'
+                    : 'Read $total item${total == 1 ? '' : 's'}. $toCheck need${toCheck == 1 ? 's' : ''} checking against the original.',
+                style: TextStyle(color: colors.onSecondaryContainer, fontWeight: FontWeight.w600),
               ),
-          ]),
+              if (!draft.hadLocalText && total > 0)
+                Text(
+                  "The device couldn't read this page by itself, so nothing could be cross-checked.",
+                  style: TextStyle(color: colors.onSecondaryContainer),
+                ),
+              for (final issue in _aiIssues)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, size: 18, color: colors.onSecondaryContainer),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(issue, style: TextStyle(color: colors.onSecondaryContainer)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     ];
@@ -837,7 +940,10 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
   List<Widget> _medicinesSection(ThemeData theme) => [
     const SizedBox(height: 20),
     Text('Medicines found', style: theme.textTheme.titleSmall),
-    Text('Saved with reminders. Tap one to change it.', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+    Text(
+      'Saved with reminders. Tap one to change it.',
+      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+    ),
     const SizedBox(height: 4),
     for (final m in _medicines)
       Card(
@@ -846,17 +952,26 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
           title: Text([m.name, ?m.dose].join(' · ')),
           subtitle: Text(
             [
-              m.times == null || m.times!.isEmpty ? 'Set dose times' : m.times!.map((t) => formatTime(context, t)).join(', '),
+              m.times == null || m.times!.isEmpty
+                  ? 'Set dose times'
+                  : m.times!.map((t) => formatTime(context, t)).join(', '),
               if (m.ongoing) 'ongoing' else if (m.days != null) '${m.days} days' else 'set duration',
               ?m.scheduleText == null ? null : 'written "${m.scheduleText}"',
               ?m.note,
             ].join(' · '),
           ),
           onTap: () async {
-            final changed = await showDialog<bool>(context: context, builder: (_) => _MedicineDialog(medicine: m));
+            final changed = await showDialog<bool>(
+              context: context,
+              builder: (_) => _MedicineDialog(medicine: m),
+            );
             if (changed == true) setState(() => m.check = Check.confirmed);
           },
-          trailing: IconButton(tooltip: 'Remove', icon: const Icon(Icons.close_rounded, size: 20), onPressed: () => setState(() => _medicines.remove(m))),
+          trailing: IconButton(
+            tooltip: 'Remove',
+            icon: const Icon(Icons.close_rounded, size: 20),
+            onPressed: () => setState(() => _medicines.remove(m)),
+          ),
         ),
       ),
   ];
@@ -873,10 +988,14 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
             PopupMenuButton<String>(
               tooltip: 'Add a whole panel',
               onSelected: _addPanel,
-              itemBuilder: (_) => [for (final p in panelOrder.where((p) => p != 'Custom')) PopupMenuItem(value: p, child: Text(p))],
+              itemBuilder: (_) => [
+                for (final p in panelOrder.where((p) => p != 'Custom')) PopupMenuItem(value: p, child: Text(p)),
+              ],
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(children: [Icon(Icons.playlist_add_rounded, size: 20), SizedBox(width: 6), Text('Add panel')]),
+                child: Row(
+                  children: [Icon(Icons.playlist_add_rounded, size: 20), SizedBox(width: 6), Text('Add panel')],
+                ),
               ),
             ),
             TextButton.icon(onPressed: _addTest, icon: const Icon(Icons.add_rounded), label: const Text('Add test')),
@@ -887,7 +1006,11 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
     if (_rows.isEmpty)
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Text('No results. Use "Add panel" or "Add test".', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+        child: Text(
+          'No results. Use "Add panel" or "Add test".',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium,
+        ),
       ),
     for (final row in _rows)
       _ResultRow(
@@ -908,13 +1031,23 @@ class _ReportEditorScreenState extends State<ReportEditorScreen> {
       ),
     if (_rows.any((r) => r.value.text.trim().isEmpty)) ...[
       const SizedBox(height: 8),
-      Text('Rows left empty are not saved.', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      Text(
+        'Rows left empty are not saved.',
+        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+      ),
     ],
   ];
 }
 
 class _ResultRow extends StatelessWidget {
-  const _ResultRow({super.key, required this.row, required this.onChanged, required this.onEdit, required this.onRemove, this.onUseAlternative});
+  const _ResultRow({
+    super.key,
+    required this.row,
+    required this.onChanged,
+    required this.onEdit,
+    required this.onRemove,
+    this.onUseAlternative,
+  });
   final _Row row;
   final VoidCallback? onUseAlternative;
   final VoidCallback onChanged;
@@ -930,7 +1063,9 @@ class _ResultRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
       decoration: BoxDecoration(
-        color: row.needsReview || row.check == Check.unreadable && !row.touched ? StatusColors.warning.withValues(alpha: 0.14) : abnormalTint(context, row.flag),
+        color: row.needsReview || row.check == Check.unreadable && !row.touched
+            ? StatusColors.warning.withValues(alpha: 0.14)
+            : abnormalTint(context, row.flag),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -945,7 +1080,11 @@ class _ResultRow extends StatelessWidget {
               },
               child: Padding(
                 padding: const EdgeInsets.only(left: 2, right: 2),
-                child: Icon(row.check!.needsReview ? Icons.help_outline_rounded : Icons.verified_outlined, size: 18, color: row.check!.needsReview ? StatusColors.warning : theme.colorScheme.primary),
+                child: Icon(
+                  row.check!.needsReview ? Icons.help_outline_rounded : Icons.verified_outlined,
+                  size: 18,
+                  color: row.check!.needsReview ? StatusColors.warning : theme.colorScheme.primary,
+                ),
               ),
             ),
           Expanded(
@@ -959,10 +1098,15 @@ class _ResultRow extends StatelessWidget {
                   children: [
                     Text(row.testName, style: theme.textTheme.bodyLarge, maxLines: 1, overflow: TextOverflow.ellipsis),
                     Text(range.isEmpty ? 'Set reference range' : 'Range $range', style: muted),
-                    if (row.note != null && !row.touched) Text(row.note!, style: muted?.copyWith(color: theme.colorScheme.onSurface)),
+                    if (row.note != null && !row.touched)
+                      Text(row.note!, style: muted?.copyWith(color: theme.colorScheme.onSurface)),
                     if (onUseAlternative != null && !row.touched)
                       TextButton(
-                        style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(0, 28), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: const Size(0, 28),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: onUseAlternative,
                         child: Text('Use ${formatNumber(row.alternative!)}'),
                       ),
@@ -1034,32 +1178,51 @@ class _MedicineDialogState extends State<_MedicineDialog> {
     title: const Text('Medicine'),
     content: SizedBox(
       width: 360,
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        TextField(controller: _name, decoration: const InputDecoration(labelText: 'Name')),
-        const SizedBox(height: 12),
-        TextField(controller: _dose, decoration: const InputDecoration(labelText: 'Strength / dose')),
-        if (widget.medicine.scheduleText != null) ...[
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
           const SizedBox(height: 12),
-          Text('Written as: ${widget.medicine.scheduleText}', style: Theme.of(context).textTheme.bodySmall),
+          TextField(
+            controller: _dose,
+            decoration: const InputDecoration(labelText: 'Strength / dose'),
+          ),
+          if (widget.medicine.scheduleText != null) ...[
+            const SizedBox(height: 12),
+            Text('Written as: ${widget.medicine.scheduleText}', style: Theme.of(context).textTheme.bodySmall),
+          ],
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final e in _presets.entries)
+                ChoiceChip(
+                  label: Text(e.key),
+                  selected: _times != null && _times!.length == e.value.length && _times!.toSet().containsAll(e.value),
+                  onSelected: (_) => setState(() => _times = e.value),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _days,
+            enabled: !_ongoing,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'For how many days'),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Ongoing'),
+            value: _ongoing,
+            onChanged: (v) => setState(() => _ongoing = v),
+          ),
         ],
-        const SizedBox(height: 8),
-        Wrap(spacing: 8, runSpacing: 4, children: [
-          for (final e in _presets.entries)
-            ChoiceChip(
-              label: Text(e.key),
-              selected: _times != null && _times!.length == e.value.length && _times!.toSet().containsAll(e.value),
-              onSelected: (_) => setState(() => _times = e.value),
-            ),
-        ]),
-        const SizedBox(height: 12),
-        TextField(controller: _days, enabled: !_ongoing, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'For how many days')),
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Ongoing'),
-          value: _ongoing,
-          onChanged: (v) => setState(() => _ongoing = v),
-        ),
-      ]),
+      ),
     ),
     actions: [
       TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
@@ -1180,7 +1343,9 @@ class _TestPickerState extends State<_TestPicker> {
   @override
   Widget build(BuildContext context) {
     final q = _q.trim().toLowerCase();
-    final matches = labCatalog.where((t) => q.isEmpty || t.name.toLowerCase().contains(q) || t.aliases.any((a) => a.contains(q))).toList();
+    final matches = labCatalog
+        .where((t) => q.isEmpty || t.name.toLowerCase().contains(q) || t.aliases.any((a) => a.contains(q)))
+        .toList();
     return AlertDialog(
       title: const Text('Add test'),
       contentPadding: const EdgeInsets.fromLTRB(0, 16, 0, 0),
@@ -1193,7 +1358,10 @@ class _TestPickerState extends State<_TestPicker> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
                 autofocus: true,
-                decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search, e.g. ferritin, TSH'),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search, e.g. ferritin, TSH',
+                ),
                 onChanged: (v) => setState(() => _q = v),
               ),
             ),
@@ -1208,7 +1376,11 @@ class _TestPickerState extends State<_TestPicker> {
                       onTap: () => Navigator.pop(context, _q.trim()),
                     ),
                   for (final t in matches)
-                    ListTile(title: Text(t.name), subtitle: Text('${t.panel} · ${t.unit}'), onTap: () => Navigator.pop(context, t)),
+                    ListTile(
+                      title: Text(t.name),
+                      subtitle: Text('${t.panel} · ${t.unit}'),
+                      onTap: () => Navigator.pop(context, t),
+                    ),
                 ],
               ),
             ),

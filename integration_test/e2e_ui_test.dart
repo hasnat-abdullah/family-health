@@ -21,8 +21,10 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   Finder fab(String label) => find.widgetWithText(FloatingActionButton, label);
-  Finder valueFieldFor(String test) =>
-      find.descendant(of: find.ancestor(of: find.text(test), matching: find.byType(Row)).first, matching: find.byType(TextField));
+  Finder valueFieldFor(String test) => find.descendant(
+    of: find.ancestor(of: find.text(test), matching: find.byType(Row)).first,
+    matching: find.byType(TextField),
+  );
   Finder fieldWithValue(String v) => find.byWidgetPredicate((w) => w is TextField && w.controller?.text == v);
   Future<void> reveal(WidgetTester tester, Finder f) async {
     // A focused field pulls the list back to itself.

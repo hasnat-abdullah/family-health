@@ -75,14 +75,26 @@ class ReportParser {
   /// Interprets one table row given as separate printed strings (as an AI
   /// reader returns them), applying the same catalog matching, number parsing
   /// and unit conversion as [parse]. Returns null if [valuePrinted] is empty.
-  ParsedResult? fromFields({required String name, required String valuePrinted, String? unit, String? range, required String sourceLine}) {
+  ParsedResult? fromFields({
+    required String name,
+    required String valuePrinted,
+    String? unit,
+    String? range,
+    required String sourceLine,
+  }) {
     final printed = asciiDigits(valuePrinted).trim();
     if (printed.isEmpty) return null;
     final test = matchTest(name);
     final numeric = RegExp('^[<>≤≥]?=?\\s*($_num)\\s*[*a-z]{0,2}\$', caseSensitive: false).firstMatch(printed);
     final value = numeric == null ? null : _toDouble(numeric.group(1)!);
     if (value == null) {
-      return ParsedResult(testKey: test?.key ?? customKey(name), testName: test?.name ?? name, valueText: printed, unit: unit, sourceLine: sourceLine);
+      return ParsedResult(
+        testKey: test?.key ?? customKey(name),
+        testName: test?.name ?? name,
+        valueText: printed,
+        unit: unit,
+        sourceLine: sourceLine,
+      );
     }
     var (low, high) = _range(asciiDigits(range ?? '').toLowerCase());
     final factor = test?.factorFor(value, (unit ?? '').toLowerCase()) ?? 1;
@@ -148,7 +160,10 @@ class ReportParser {
       final word = RegExp(r'\b(negative|positive|nil|trace|absent|present|reactive|non-reactive)\b').firstMatch(rest);
       if (word == null) return null;
       return ParsedResult(
-        testKey: test.key, testName: test.name, valueText: _titleCase(word.group(1)!), sourceLine: line,
+        testKey: test.key,
+        testName: test.name,
+        valueText: _titleCase(word.group(1)!),
+        sourceLine: line,
       );
     }
 
@@ -174,7 +189,13 @@ class ReportParser {
   /// Rows that look like "Name  value  unit  low - high" for tests not in the catalog.
   ParsedResult? _customLine(String line) {
     final m = RegExp(
-      r'^([A-Za-z][A-Za-z .()/%-]{2,40}?)\s{1,}(' + _num + r')\s*([A-Za-zµ/%^0-9.]*)\s+(' + _num + r')\s*[-–]\s*(' + _num + r')\s*([A-Za-zµ/%^.]*)\s*$',
+      r'^([A-Za-z][A-Za-z .()/%-]{2,40}?)\s{1,}(' +
+          _num +
+          r')\s*([A-Za-zµ/%^0-9.]*)\s+(' +
+          _num +
+          r')\s*[-–]\s*(' +
+          _num +
+          r')\s*([A-Za-zµ/%^.]*)\s*$',
     ).firstMatch(line.trim());
     if (m == null) return null;
     final name = m.group(1)!.trim();
@@ -232,8 +253,18 @@ class ReportParser {
 // ---- Dates
 
 const _months = {
-  'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-  'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  'jan': 1,
+  'feb': 2,
+  'mar': 3,
+  'apr': 4,
+  'may': 5,
+  'jun': 6,
+  'jul': 7,
+  'aug': 8,
+  'sep': 9,
+  'oct': 10,
+  'nov': 11,
+  'dec': 12,
 };
 
 /// Finds the most likely report date: a date on a line mentioning collection or
@@ -277,13 +308,17 @@ List<DateTime> parseDates(String text) {
     final d = make(int.parse(m[3]!), b, a);
     if (d != null) out.add(d);
   }
-  for (final m in RegExp(r'\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/.,]*([a-z]{3})[a-z]*[\s\-/.,]*(\d{4}|\d{2})\b').allMatches(text)) {
+  for (final m in RegExp(
+    r'\b(\d{1,2})(?:st|nd|rd|th)?[\s\-/.,]*([a-z]{3})[a-z]*[\s\-/.,]*(\d{4}|\d{2})\b',
+  ).allMatches(text)) {
     final month = _months[m[2]!];
     if (month == null) continue;
     final d = make(int.parse(m[3]!), month, int.parse(m[1]!));
     if (d != null) out.add(d);
   }
-  for (final m in RegExp(r'\b([a-z]{3})[a-z]*[\s\-/.]+(\d{1,2})(?:st|nd|rd|th)?,?[\s\-/.]+(\d{4})\b').allMatches(text)) {
+  for (final m in RegExp(
+    r'\b([a-z]{3})[a-z]*[\s\-/.]+(\d{1,2})(?:st|nd|rd|th)?,?[\s\-/.]+(\d{4})\b',
+  ).allMatches(text)) {
     final month = _months[m[1]!];
     if (month == null) continue;
     final d = make(int.parse(m[3]!), month, int.parse(m[2]!));

@@ -1,0 +1,3 @@
+#!/bin/bash
+# Runs the same gate as CI, so a push doesn't wait minutes to learn it failed.
+exec tool/check.sh

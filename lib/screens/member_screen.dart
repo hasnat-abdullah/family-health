@@ -117,16 +117,27 @@ Future<void> showAddReportSheet(BuildContext context, Member member) async {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _SheetHeader('Lab report — values are read and charted'),
-            if (isMobile) const _SheetOption('camera', Icons.photo_camera_rounded, 'Take a photo', 'Photograph a paper report'),
             if (isMobile)
-              const _SheetOption('photos', Icons.photo_library_rounded, 'Choose from photos', 'A picture of a report you already have'),
+              const _SheetOption('camera', Icons.photo_camera_rounded, 'Take a photo', 'Photograph a paper report'),
+            if (isMobile)
+              const _SheetOption(
+                'photos',
+                Icons.photo_library_rounded,
+                'Choose from photos',
+                'A picture of a report you already have',
+              ),
             _SheetOption(
               'files',
               Icons.upload_file_rounded,
               isMobile ? 'Choose a PDF or image file' : 'Import PDF or image',
               'Lab PDFs are read exactly; scans and photos via on-device OCR',
             ),
-            const _SheetOption('csv', Icons.table_chart_rounded, 'Import from CSV', 'One row per test, or one row per date'),
+            const _SheetOption(
+              'csv',
+              Icons.table_chart_rounded,
+              'Import from CSV',
+              'One row per test, or one row per date',
+            ),
             const _SheetOption('manual', Icons.edit_note_rounded, 'Enter values manually', 'e.g. your monthly CBC'),
             const Divider(),
             const _SheetHeader('Other records'),
@@ -142,7 +153,12 @@ Future<void> showAddReportSheet(BuildContext context, Member member) async {
               'Other document',
               'X-ray, scan, discharge summary, vaccination card…',
             ),
-            const _SheetOption('medicine', Icons.medication_rounded, 'Medicine reminder', 'Without a prescription document'),
+            const _SheetOption(
+              'medicine',
+              Icons.medication_rounded,
+              'Medicine reminder',
+              'Without a prescription document',
+            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -177,7 +193,10 @@ class _SheetHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-    child: Text(text, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary)),
+    child: Text(
+      text,
+      style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.primary),
+    ),
   );
 }
 
@@ -212,13 +231,16 @@ Future<void> _addDocument(BuildContext context, Member member, DocType type) asy
     return;
   }
   final reportId = newId();
-  final attachments = [for (final f in picked) await FileStore.instance.importFile(f.file, reportId: reportId, originalName: f.name)];
+  final attachments = [
+    for (final f in picked) await FileStore.instance.importFile(f.file, reportId: reportId, originalName: f.name),
+  ];
   await FileIO.discardPlainCopies(picked);
   if (!context.mounted) return;
   await Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => ReportEditorScreen.create(member: member, reportId: reportId, attachments: attachments, type: type),
+      builder: (_) =>
+          ReportEditorScreen.create(member: member, reportId: reportId, attachments: attachments, type: type),
     ),
   );
 }
@@ -464,7 +486,10 @@ class _TrendCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text(formatValue(latest), style: valueStyle(context, latest.flag, base: theme.textTheme.headlineSmall)),
+                  Text(
+                    formatValue(latest),
+                    style: valueStyle(context, latest.flag, base: theme.textTheme.headlineSmall),
+                  ),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(latest.unit ?? '', style: muted, overflow: TextOverflow.ellipsis),
@@ -473,7 +498,12 @@ class _TrendCard extends StatelessWidget {
                   FlagBadge(latest.flag),
                 ],
               ),
-              Text([dateFmt.format(latest.date), ?delta].join(' · '), style: muted, maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text(
+                [dateFmt.format(latest.date), ?delta].join(' · '),
+                style: muted,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               const SizedBox(height: 6),
               Expanded(child: numeric.length >= 2 ? TrendChart(results: numeric, compact: true) : const SizedBox()),
             ],
@@ -518,10 +548,10 @@ class _ReportsTabState extends State<_ReportsTab> {
       resultsByReport.putIfAbsent(r.reportId, () => []).add(r);
     }
     final present = data.reports.map((r) => r.type).toSet();
-    final seen = [
-      for (final id in data.reports.map((r) => r.doctorId).whereType<String>().toSet()) ?data.doctors[id],
-    ];
-    final shown = data.reports.where((r) => (_filter == null || r.type == _filter) && (_doctorFilter == null || r.doctorId == _doctorFilter)).toList();
+    final seen = [for (final id in data.reports.map((r) => r.doctorId).whereType<String>().toSet()) ?data.doctors[id]];
+    final shown = data.reports
+        .where((r) => (_filter == null || r.type == _filter) && (_doctorFilter == null || r.doctorId == _doctorFilter))
+        .toList();
 
     final items = <Widget>[
       if (present.length > 1)
@@ -530,7 +560,11 @@ class _ReportsTabState extends State<_ReportsTab> {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           child: Row(
             children: [
-              FilterChip(label: const Text('All'), selected: _filter == null, onSelected: (_) => setState(() => _filter = null)),
+              FilterChip(
+                label: const Text('All'),
+                selected: _filter == null,
+                onSelected: (_) => setState(() => _filter = null),
+              ),
               for (final t in DocType.values.where(present.contains))
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -596,7 +630,11 @@ class _ReportsTabState extends State<_ReportsTab> {
           trailing: flagged > 0
               ? Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [const FlagBadge(ResultFlag.high, compact: true), const SizedBox(width: 4), Text('$flagged out of range')],
+                  children: [
+                    const FlagBadge(ResultFlag.high, compact: true),
+                    const SizedBox(width: 4),
+                    Text('$flagged out of range'),
+                  ],
                 )
               : null,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: r.id))),
@@ -622,10 +660,10 @@ class _MedicinesTab extends StatelessWidget {
       return EmptyState(
         icon: Icons.medication_rounded,
         title: 'No medicines',
-        message:
-            'Add medicines from a prescription or on their own. You will get a reminder at each dose time until the course is complete.',
+        message: 'Add medicines from a prescription or on their own. You will get a reminder at each dose time until the course is complete.',
         action: FilledButton.icon(
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MedicationFormScreen(member: data.member))),
+          onPressed: () =>
+              Navigator.push(context, MaterialPageRoute(builder: (_) => MedicationFormScreen(member: data.member))),
           icon: const Icon(Icons.add_rounded),
           label: const Text('Add medicine'),
         ),

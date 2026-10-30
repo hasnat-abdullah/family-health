@@ -1,0 +1,12 @@
+#!/bin/bash
+# Stops secrets, broken rules and unformatted Dart before they reach history.
+tool/repo_guards.sh || exit 1
+dart_files=()
+while IFS= read -r -d '' file; do
+  dart_files+=("$file")
+done < <(git diff --cached --name-only --diff-filter=ACMR -z -- '*.dart')
+[ ${#dart_files[@]} -eq 0 ] && exit 0
+dart format --output=none --set-exit-if-changed "${dart_files[@]}" >/dev/null || {
+  echo "Unformatted Dart. Run: dart format ${dart_files[*]}"
+  exit 1
+}

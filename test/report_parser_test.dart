@@ -2,8 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:family_health/services/report_parser.dart';
 
 void main() {
-  ParsedResult? find(ParsedReport r, String key) =>
-      r.results.where((x) => x.testKey == key).firstOrNull;
+  ParsedResult? find(ParsedReport r, String key) => r.results.where((x) => x.testKey == key).firstOrNull;
 
   test('parses a typical CBC table with per-µL counts', () {
     final report = ReportParser(sex: 'F').parse([

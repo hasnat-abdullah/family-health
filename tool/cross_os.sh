@@ -35,7 +35,7 @@ pids=(); names=(); ids=()
 for pair in "$@"; do
   n=${pair%%=*}; d=${pair#*=}; names+=("$n"); ids+=("$d")
   ( flutter test integration_test/cross_os_test.dart -d "$d" --dart-define=OS_NAME="$n" > "$logs/xos_$n.log" 2>&1 ) &
-  pid=$!; pids+=($pid)
+  pid=$!; pids+=("$pid")
   # One build at a time per platform; wait until this device has exported.
   until grep -q "XOS_READY $n" "$logs/xos_$n.log" 2>/dev/null; do
     kill -0 "$pid" 2>/dev/null || { echo "FAILED before export: $n"; tail -20 "$logs/xos_$n.log"; exit 1; }

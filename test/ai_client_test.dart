@@ -12,14 +12,14 @@ import 'package:family_health/services/ai/extraction_prompt.dart';
 
 const _request = AiRequest(system: 'sys', prompt: 'go', schema: pingSchema);
 
-AiTransport _transport(MockClientHandler handler, {List<Duration>? slept, int attempts = 3}) => AiTransport(
-  clientFactory: () => MockClient(handler),
-  maxAttempts: attempts,
-  sleep: (d) async => slept?.add(d),
-);
+AiTransport _transport(MockClientHandler handler, {List<Duration>? slept, int attempts = 3}) =>
+    AiTransport(clientFactory: () => MockClient(handler), maxAttempts: attempts, sleep: (d) async => slept?.add(d));
 
-http.Response _json(Object body, [int status = 200, Map<String, String> headers = const {}]) =>
-    http.Response.bytes(utf8.encode(jsonEncode(body)), status, headers: {'content-type': 'application/json', ...headers});
+http.Response _json(Object body, [int status = 200, Map<String, String> headers = const {}]) => http.Response.bytes(
+  utf8.encode(jsonEncode(body)),
+  status,
+  headers: {'content-type': 'application/json', ...headers},
+);
 
 Future<AiException> _failure(Future<Object?> call) async {
   try {
@@ -62,7 +62,16 @@ void main() {
           });
         }),
       );
-      final out = await b.complete(AiRequest(system: 's', prompt: 'p', schema: pingSchema, images: [AiImage(Uint8List.fromList([1, 2]), 'image/jpeg')]));
+      final out = await b.complete(
+        AiRequest(
+          system: 's',
+          prompt: 'p',
+          schema: pingSchema,
+          images: [
+            AiImage(Uint8List.fromList([1, 2]), 'image/jpeg'),
+          ],
+        ),
+      );
       expect(out, '{"ok":true}');
       expect(sent.url.toString(), 'https://api.anthropic.com/v1/messages');
       expect(sent.headers['x-api-key'], 'sk-secret');
@@ -102,7 +111,10 @@ void main() {
           calls++;
           if (r.headers.containsKey('anthropic-beta')) {
             return _json({
-              'error': {'type': 'invalid_request_error', 'message': 'Unexpected value(s) for the `anthropic-beta` header.'},
+              'error': {
+                'type': 'invalid_request_error',
+                'message': 'Unexpected value(s) for the `anthropic-beta` header.',
+              },
             }, 400);
           }
           return _json({
@@ -135,7 +147,16 @@ void main() {
             ],
           });
         }),
-      ).complete(AiRequest(system: 's', prompt: 'p', schema: pingSchema, images: [AiImage(Uint8List.fromList([255]), 'image/jpeg')]));
+      ).complete(
+        AiRequest(
+          system: 's',
+          prompt: 'p',
+          schema: pingSchema,
+          images: [
+            AiImage(Uint8List.fromList([255]), 'image/jpeg'),
+          ],
+        ),
+      );
       expect(sent.headers['authorization'], 'Bearer sk-abcd');
       expect(body.containsKey('temperature'), isFalse);
       expect(body.containsKey('max_tokens'), isFalse);
@@ -183,7 +204,10 @@ void main() {
           return _json(geminiOk);
         }),
       ).complete(_request);
-      expect(sent.url.toString(), 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent');
+      expect(
+        sent.url.toString(),
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent',
+      );
       expect(sent.url.toString(), isNot(contains('AIza')));
       expect(sent.headers['x-goog-api-key'], 'AIza-secret');
       expect(((jsonDecode(sent.body) as Map)['generationConfig'] as Map)['responseMimeType'], 'application/json');
@@ -216,10 +240,12 @@ void main() {
 
     test('gives up after the last attempt with a friendly error', () async {
       var calls = 0;
-      final e = await _failure(_transport((r) async {
-        calls++;
-        return http.Response('down', 503);
-      }).postJson(Uri.parse('https://x/y'), {}, {}));
+      final e = await _failure(
+        _transport((r) async {
+          calls++;
+          return http.Response('down', 503);
+        }).postJson(Uri.parse('https://x/y'), {}, {}),
+      );
       expect((calls, e.kind), (3, AiErrorKind.overloaded));
     });
 
@@ -233,36 +259,91 @@ void main() {
       expect(slept.single, const Duration(seconds: 7));
 
       calls = 0;
-      final e = await _failure(_transport((r) async {
-        calls++;
-        return _json({}, 429, {'retry-after': '3600'});
-      }).postJson(Uri.parse('https://x/y'), {}, {}));
+      final e = await _failure(
+        _transport((r) async {
+          calls++;
+          return _json({}, 429, {'retry-after': '3600'});
+        }).postJson(Uri.parse('https://x/y'), {}, {}),
+      );
       expect((calls, e.kind), (1, AiErrorKind.rateLimited));
       expect(e.message, contains('60 minutes'));
     });
 
     test('never retries what retrying cannot fix', () async {
       for (final (status, body, kind) in [
-        (401, {'error': {'message': 'bad'}}, AiErrorKind.auth),
-        (402, {'error': {'type': 'billing_error', 'message': 'x'}}, AiErrorKind.quota),
-        (429, {'error': {'code': 'insufficient_quota', 'message': 'x'}}, AiErrorKind.quota),
-        (404, {'error': {'message': 'no such model'}}, AiErrorKind.modelNotFound),
-        (413, {'error': {'message': 'big'}}, AiErrorKind.tooLarge),
-        (400, {'error': {'message': 'maximum context length exceeded'}}, AiErrorKind.tooLarge),
-        (400, {'error': {'status': 'INVALID_ARGUMENT', 'message': 'API key not valid.'}}, AiErrorKind.auth),
-        (400, {'error': {'message': 'nope'}}, AiErrorKind.badRequest),
+        (
+          401,
+          {
+            'error': {'message': 'bad'},
+          },
+          AiErrorKind.auth,
+        ),
+        (
+          402,
+          {
+            'error': {'type': 'billing_error', 'message': 'x'},
+          },
+          AiErrorKind.quota,
+        ),
+        (
+          429,
+          {
+            'error': {'code': 'insufficient_quota', 'message': 'x'},
+          },
+          AiErrorKind.quota,
+        ),
+        (
+          404,
+          {
+            'error': {'message': 'no such model'},
+          },
+          AiErrorKind.modelNotFound,
+        ),
+        (
+          413,
+          {
+            'error': {'message': 'big'},
+          },
+          AiErrorKind.tooLarge,
+        ),
+        (
+          400,
+          {
+            'error': {'message': 'maximum context length exceeded'},
+          },
+          AiErrorKind.tooLarge,
+        ),
+        (
+          400,
+          {
+            'error': {'status': 'INVALID_ARGUMENT', 'message': 'API key not valid.'},
+          },
+          AiErrorKind.auth,
+        ),
+        (
+          400,
+          {
+            'error': {'message': 'nope'},
+          },
+          AiErrorKind.badRequest,
+        ),
       ]) {
         var calls = 0;
-        final e = await _failure(_transport((r) async {
-          calls++;
-          return _json(body, status);
-        }).postJson(Uri.parse('https://x/y'), {}, {}));
+        final e = await _failure(
+          _transport((r) async {
+            calls++;
+            return _json(body, status);
+          }).postJson(Uri.parse('https://x/y'), {}, {}),
+        );
         expect((calls, e.kind), (1, kind), reason: '$status $body');
       }
     });
 
     test('a timeout stops immediately', () async {
-      final t = AiTransport(clientFactory: () => MockClient((r) => Completer<http.Response>().future), timeout: const Duration(milliseconds: 20));
+      final t = AiTransport(
+        clientFactory: () => MockClient((r) => Completer<http.Response>().future),
+        timeout: const Duration(milliseconds: 20),
+      );
       expect((await _failure(t.postJson(Uri.parse('https://x/y'), {}, {}))).kind, AiErrorKind.timeout);
     });
 
@@ -284,35 +365,105 @@ void main() {
     });
 
     test('keys never reach error text', () {
-      final e = AiTransport.classify(401, '{"error":{"message":"Incorrect API key sk-secret-1234 provided"}}', null, {'sk-secret-1234'});
+      final e = AiTransport.classify(401, '{"error":{"message":"Incorrect API key sk-secret-1234 provided"}}', null, {
+        'sk-secret-1234',
+      });
       expect(e.detail, isNot(contains('sk-secret')));
     });
 
     test('a 200 that is not JSON is an error, not a crash', () async {
-      final e = await _failure(_transport((r) async => http.Response('<html>proxy</html>', 200)).postJson(Uri.parse('https://x/y'), {}, {}));
+      final e = await _failure(
+        _transport((r) async => http.Response('<html>proxy</html>', 200)).postJson(Uri.parse('https://x/y'), {}, {}),
+      );
       expect(e.kind, AiErrorKind.invalidResponse);
     });
   });
 
   group('unusable replies', () {
-    AnthropicBackend anthropic(Map<String, Object?> reply) =>
-        AnthropicBackend(apiKey: 'k1234', model: 'claude-opus-5-5', baseUrl: 'https://x/v1', transport: _transport((r) async => _json(reply)));
-    OpenAiBackend openai(Map<String, Object?> reply) =>
-        OpenAiBackend(apiKey: 'k1234', model: 'm', baseUrl: 'https://x/v1', transport: _transport((r) async => _json(reply)));
-    GeminiBackend gemini(Map<String, Object?> reply) =>
-        GeminiBackend(apiKey: 'k1234', model: 'm', baseUrl: 'https://x/v1', transport: _transport((r) async => _json(reply)));
+    AnthropicBackend anthropic(Map<String, Object?> reply) => AnthropicBackend(
+      apiKey: 'k1234',
+      model: 'claude-opus-5-5',
+      baseUrl: 'https://x/v1',
+      transport: _transport((r) async => _json(reply)),
+    );
+    OpenAiBackend openai(Map<String, Object?> reply) => OpenAiBackend(
+      apiKey: 'k1234',
+      model: 'm',
+      baseUrl: 'https://x/v1',
+      transport: _transport((r) async => _json(reply)),
+    );
+    GeminiBackend gemini(Map<String, Object?> reply) => GeminiBackend(
+      apiKey: 'k1234',
+      model: 'm',
+      baseUrl: 'https://x/v1',
+      transport: _transport((r) async => _json(reply)),
+    );
 
     test('refusals and cut-off answers are reported, never parsed', () async {
       for (final (call, kind) in [
         (anthropic({'stop_reason': 'refusal', 'content': []}), AiErrorKind.refused),
-        (anthropic({'stop_reason': 'max_tokens', 'content': [{'type': 'text', 'text': '{"a":'}]}), AiErrorKind.truncated),
+        (
+          anthropic({
+            'stop_reason': 'max_tokens',
+            'content': [
+              {'type': 'text', 'text': '{"a":'},
+            ],
+          }),
+          AiErrorKind.truncated,
+        ),
         (anthropic({'stop_reason': 'end_turn', 'content': []}), AiErrorKind.invalidResponse),
-        (openai({'choices': [{'finish_reason': 'stop', 'message': {'refusal': 'no', 'content': null}}]}), AiErrorKind.refused),
-        (openai({'choices': [{'finish_reason': 'length', 'message': {'content': '{'}}]}), AiErrorKind.truncated),
+        (
+          openai({
+            'choices': [
+              {
+                'finish_reason': 'stop',
+                'message': {'refusal': 'no', 'content': null},
+              },
+            ],
+          }),
+          AiErrorKind.refused,
+        ),
+        (
+          openai({
+            'choices': [
+              {
+                'finish_reason': 'length',
+                'message': {'content': '{'},
+              },
+            ],
+          }),
+          AiErrorKind.truncated,
+        ),
         (openai({'choices': []}), AiErrorKind.invalidResponse),
-        (gemini({'promptFeedback': {'blockReason': 'SAFETY'}}), AiErrorKind.refused),
-        (gemini({'candidates': [{'finishReason': 'SAFETY'}]}), AiErrorKind.refused),
-        (gemini({'candidates': [{'finishReason': 'MAX_TOKENS', 'content': {'parts': [{'text': '{'}]}}]}), AiErrorKind.truncated),
+        (
+          gemini({
+            'promptFeedback': {'blockReason': 'SAFETY'},
+          }),
+          AiErrorKind.refused,
+        ),
+        (
+          gemini({
+            'candidates': [
+              {'finishReason': 'SAFETY'},
+            ],
+          }),
+          AiErrorKind.refused,
+        ),
+        (
+          gemini({
+            'candidates': [
+              {
+                'finishReason': 'MAX_TOKENS',
+                'content': {
+                  'parts': [
+                    {'text': '{'},
+                  ],
+                },
+              },
+            ],
+          }),
+          AiErrorKind.truncated,
+        ),
         (gemini({'candidates': []}), AiErrorKind.invalidResponse),
       ]) {
         expect((await _failure(call.complete(_request))).kind, kind);

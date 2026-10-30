@@ -88,9 +88,10 @@ class Vault {
       }
     }
     final master = SecretKey(base64Decode(encoded));
-    Future<List<int>> derive(String purpose) async => (await Hkdf(hmac: Hmac.sha256(), outputLength: 32)
-            .deriveKey(secretKey: master, nonce: utf8.encode('medi_archive'), info: utf8.encode(purpose)))
-        .extractBytes();
+    Future<List<int>> derive(String purpose) async => (await Hkdf(
+      hmac: Hmac.sha256(),
+      outputLength: 32,
+    ).deriveKey(secretKey: master, nonce: utf8.encode('medi_archive'), info: utf8.encode(purpose))).extractBytes();
     final vault = Vault._(keyStore, await derive('sqlcipher'), SecretKey(await derive('files')));
     instance = vault;
     return vault;
@@ -103,8 +104,7 @@ class Vault {
 
   static final _fileMagic = ascii.encode('MAF1');
 
-  static bool isEncryptedFile(List<int> bytes) =>
-      bytes.length >= 4 && _startsWith(bytes, _fileMagic);
+  static bool isEncryptedFile(List<int> bytes) => bytes.length >= 4 && _startsWith(bytes, _fileMagic);
 
   Future<Uint8List> encryptFile(List<int> plain) async {
     final box = await _aes.encrypt(plain, secretKey: _fileKey, nonce: _aes.newNonce(), aad: _fileMagic);
@@ -160,16 +160,23 @@ class Vault {
     final header = data.sublist(0, 25);
     final key = await _passwordKey(password, data.sublist(9, 25), iterations);
     try {
-      final box = SecretBox(data.sublist(37, data.length - 16), nonce: data.sublist(25, 37), mac: Mac(data.sublist(data.length - 16)));
+      final box = SecretBox(
+        data.sublist(37, data.length - 16),
+        nonce: data.sublist(25, 37),
+        mac: Mac(data.sublist(data.length - 16)),
+      );
       return Uint8List.fromList(await _isolateAes.decrypt(box, secretKey: key, aad: header));
     } on SecretBoxAuthenticationError {
       throw const WrongPasswordException();
     }
   }
 
-  static Future<SecretKey> _passwordKey(String password, List<int> salt, int iterations) =>
-      DartPbkdf2(macAlgorithm: DartHmac(const DartSha256()), iterations: iterations, bits: 256, pausePeriod: Duration.zero)
-          .deriveKey(secretKey: SecretKey(utf8.encode(password)), nonce: salt);
+  static Future<SecretKey> _passwordKey(String password, List<int> salt, int iterations) => DartPbkdf2(
+    macAlgorithm: DartHmac(const DartSha256()),
+    iterations: iterations,
+    bits: 256,
+    pausePeriod: Duration.zero,
+  ).deriveKey(secretKey: SecretKey(utf8.encode(password)), nonce: salt);
 
   // ---- helpers
 

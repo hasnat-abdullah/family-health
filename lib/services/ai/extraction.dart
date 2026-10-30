@@ -190,7 +190,18 @@ class DraftResult {
 }
 
 class DraftMedicine {
-  DraftMedicine({required this.name, this.dose, this.times, this.days, this.ongoing = false, this.instructions, this.scheduleText, this.durationText, required this.check, this.note});
+  DraftMedicine({
+    required this.name,
+    this.dose,
+    this.times,
+    this.days,
+    this.ongoing = false,
+    this.instructions,
+    this.scheduleText,
+    this.durationText,
+    required this.check,
+    this.note,
+  });
   String name;
   String? dose;
 
@@ -246,12 +257,37 @@ class ExtractionDraft {
   final List<String> issues;
   final bool hadLocalText;
 
-  int get toReview => results.where((r) => r.check.needsReview).length + medicines.where((m) => m.check.needsReview).length;
+  int get toReview =>
+      results.where((r) => r.check.needsReview).length + medicines.where((m) => m.check.needsReview).length;
 }
 
 // ---------------------------------------------------------------- Patient and doctor matching
 
-const _honorifics = {'mr', 'mrs', 'ms', 'miss', 'md', 'mst', 'mosammat', 'mohammad', 'mohammed', 'muhammad', 'sk', 'master', 'baby', 'late', 'dr', 'prof', 'professor', 'assoc', 'asst', 'brig', 'gen', 'col', 'maj'};
+const _honorifics = {
+  'mr',
+  'mrs',
+  'ms',
+  'miss',
+  'md',
+  'mst',
+  'mosammat',
+  'mohammad',
+  'mohammed',
+  'muhammad',
+  'sk',
+  'master',
+  'baby',
+  'late',
+  'dr',
+  'prof',
+  'professor',
+  'assoc',
+  'asst',
+  'brig',
+  'gen',
+  'col',
+  'maj',
+};
 
 /// Name words, without titles or anything after a comma (degrees).
 List<String> nameWords(String name) => name
@@ -287,7 +323,9 @@ class PatientMatch {
 PatientMatch matchPatient(AiDocument doc, List<Member> family, Member? current) {
   final name = doc.patientName;
   if (name == null) return PatientMatch(PatientStatus.notPrinted);
-  if (current != null && namesMatch(name, current.name)) return PatientMatch(PatientStatus.matchesCurrent, printedName: name, member: current);
+  if (current != null && namesMatch(name, current.name)) {
+    return PatientMatch(PatientStatus.matchesCurrent, printedName: name, member: current);
+  }
   final hits = family.where((m) => namesMatch(name, m.name)).toList();
   // Two members fitting equally ("Rahman") is no answer at all.
   if (hits.length == 1) return PatientMatch(PatientStatus.matchesOther, printedName: name, member: hits.single);
@@ -295,7 +333,9 @@ PatientMatch matchPatient(AiDocument doc, List<Member> family, Member? current) 
 }
 
 String? matchDoctor(String name, List<Doctor> doctors) {
-  final hits = doctors.where((d) => nameWords(d.name).length >= 2 && nameWords(name).length >= 2 && namesMatch(name, d.name)).toList();
+  final hits = doctors
+      .where((d) => nameWords(d.name).length >= 2 && nameWords(name).length >= 2 && namesMatch(name, d.name))
+      .toList();
   return hits.length == 1 ? hits.single.id : null;
 }
 
@@ -305,7 +345,8 @@ String? matchDoctor(String name, List<Doctor> doctors) {
 /// this code decides numbers: printed strings go through the same parser as
 /// on-device reading, so the model can't convert or "correct" a value.
 class ExtractionChecker {
-  ExtractionChecker({required this.member, this.doctors = const [], this.history = const {}, DateTime? today}) : today = today ?? DateTime.now();
+  ExtractionChecker({required this.member, this.doctors = const [], this.history = const {}, DateTime? today})
+    : today = today ?? DateTime.now();
 
   final Member? member;
   final List<Doctor> doctors;
@@ -327,7 +368,9 @@ class ExtractionChecker {
 
     if (!doc.isMedical) issues.add("This doesn't look like a medical document. Nothing was read from it.");
     if (doc.otherPatients.isNotEmpty) {
-      issues.add('These pages also mention ${doc.otherPatients.join(', ')}. Only one person\'s details were read: split the file if it holds several people\'s reports.');
+      issues.add(
+        'These pages also mention ${doc.otherPatients.join(', ')}. Only one person\'s details were read: split the file if it holds several people\'s reports.',
+      );
     }
     final sexIssue = _sexIssue(doc);
     if (sexIssue != null) issues.add(sexIssue);
@@ -362,7 +405,9 @@ class ExtractionChecker {
     // Nothing the on-device reader found is lost just because the AI skipped it.
     if (doc.isMedical && doc.type == DocType.lab) {
       for (final r in local.results.where((r) => !seen.containsKey(r.testKey))) {
-        results.add(DraftResult(r, Check.localOnly, note: "Only the on-device reader found this. Check it's a real result."));
+        results.add(
+          DraftResult(r, Check.localOnly, note: "Only the on-device reader found this. Check it's a real result."),
+        );
       }
     }
 
@@ -373,7 +418,9 @@ class ExtractionChecker {
 
     final aiRead = results.where((r) => r.check != Check.localOnly).toList();
     if (hasText && aiRead.isNotEmpty && aiRead.where((r) => r.check == Check.notFound).length > aiRead.length / 2) {
-      issues.add("Most values couldn't be found by the on-device reader. If this is handwritten or a poor photo, check each one against the original.");
+      issues.add(
+        "Most values couldn't be found by the on-device reader. If this is handwritten or a poor photo, check each one against the original.",
+      );
     }
 
     final name = doc.doctorName;
@@ -384,7 +431,13 @@ class ExtractionChecker {
       lab: doc.facility,
       doctor: name == null
           ? null
-          : DraftDoctor(name: name, specialty: doc.doctorSpecialty, hospital: doc.doctorHospital ?? doc.facility, phone: doc.doctorPhone, matchId: matchDoctor(name, doctors)),
+          : DraftDoctor(
+              name: name,
+              specialty: doc.doctorSpecialty,
+              hospital: doc.doctorHospital ?? doc.facility,
+              phone: doc.doctorPhone,
+              matchId: matchDoctor(name, doctors),
+            ),
       results: results,
       medicines: medicines,
       notes: doc.notes,
@@ -394,18 +447,43 @@ class ExtractionChecker {
     );
   }
 
-  DraftResult? _checkRow(AiLabRow row, ReportParser parser, Map<String, ParsedResult> localByKey, List<String> lines, Set<double> numbers, bool hasText) {
+  DraftResult? _checkRow(
+    AiLabRow row,
+    ReportParser parser,
+    Map<String, ParsedResult> localByKey,
+    List<String> lines,
+    Set<double> numbers,
+    bool hasText,
+  ) {
     if (row.value == null || !row.legible) {
       final test = ReportParser.matchTest(row.name);
       final own = localByKey[test?.key];
-      if (own != null) return DraftResult(own, Check.localOnly, note: 'The AI could not read this; this value is from the on-device reader.');
+      if (own != null) {
+        return DraftResult(
+          own,
+          Check.localOnly,
+          note: 'The AI could not read this; this value is from the on-device reader.',
+        );
+      }
       return DraftResult(
-        ParsedResult(testKey: test?.key ?? customKey(row.name), testName: test?.name ?? row.name, unit: test?.unit ?? row.unit, valueText: null, sourceLine: row.source ?? row.name),
+        ParsedResult(
+          testKey: test?.key ?? customKey(row.name),
+          testName: test?.name ?? row.name,
+          unit: test?.unit ?? row.unit,
+          valueText: null,
+          sourceLine: row.source ?? row.name,
+        ),
         Check.unreadable,
         note: "Couldn't be read. Type it in from the original, or remove it.",
       );
     }
-    final p = parser.fromFields(name: row.name, valuePrinted: row.value!, unit: row.unit, range: row.range, sourceLine: row.source ?? '${row.name} ${row.value}');
+    final p = parser.fromFields(
+      name: row.name,
+      valuePrinted: row.value!,
+      unit: row.unit,
+      range: row.range,
+      sourceLine: row.source ?? '${row.name} ${row.value}',
+    );
     if (p == null) return null;
 
     final notes = <String>[];
@@ -425,7 +503,9 @@ class ExtractionChecker {
       alternative = other.value;
       notes.add('The on-device reader saw ${_fmt(other.value!)} here.');
     } else if (printedNumber == null) {
-      check = hasText && lines.any((l) => l.contains(row.value!.toLowerCase())) ? Check.confirmed : (hasText ? Check.notFound : Check.uncheckable);
+      check = hasText && lines.any((l) => l.contains(row.value!.toLowerCase()))
+          ? Check.confirmed
+          : (hasText ? Check.notFound : Check.uncheckable);
     } else if (!hasText) {
       check = Check.uncheckable;
     } else if (!numbers.any((n) => _close(n, printedNumber))) {
@@ -498,8 +578,13 @@ class ExtractionChecker {
     } else if (!hasText) {
       check = Check.uncheckable;
     } else {
-      final word = m.name.toLowerCase().split(RegExp(r'[^\p{L}\p{N}]+', unicode: true)).firstWhere((w) => w.length >= 3, orElse: () => '');
-      final found = word.isNotEmpty && lines.any((l) => l.split(RegExp(r'[^\p{L}\p{N}]+', unicode: true)).any((w) => sameWord(w, word)));
+      final word = m.name
+          .toLowerCase()
+          .split(RegExp(r'[^\p{L}\p{N}]+', unicode: true))
+          .firstWhere((w) => w.length >= 3, orElse: () => '');
+      final found =
+          word.isNotEmpty &&
+          lines.any((l) => l.split(RegExp(r'[^\p{L}\p{N}]+', unicode: true)).any((w) => sameWord(w, word)));
       if (!found) {
         check = Check.notFound;
         notes.add('The on-device reader could not find this name. Check it against the prescription.');
@@ -523,7 +608,9 @@ class ExtractionChecker {
 
   (DateTime?, String?) _resolveDate(AiDocument doc, DateTime? localDate) {
     DateTime? date;
-    final printed = doc.datePrinted == null ? const <DateTime>[] : parseDates(asciiDigits(doc.datePrinted!).toLowerCase());
+    final printed = doc.datePrinted == null
+        ? const <DateTime>[]
+        : parseDates(asciiDigits(doc.datePrinted!).toLowerCase());
     if (printed.isNotEmpty) {
       // Our day-first rule decides, not the model's reading of an ambiguous date.
       date = printed.first;
@@ -531,7 +618,10 @@ class ExtractionChecker {
       date = DateTime.tryParse(doc.dateIso!);
     }
     if (date != null && (date.isAfter(today) || date.year < 1950)) {
-      return (localDate, 'The date read from the document (${doc.datePrinted ?? doc.dateIso}) is not possible. Please check it.');
+      return (
+        localDate,
+        'The date read from the document (${doc.datePrinted ?? doc.dateIso}) is not possible. Please check it.',
+      );
     }
     if (date == null) return (localDate, null);
     if (localDate != null && dateToDb(localDate) != dateToDb(date)) {
@@ -543,7 +633,11 @@ class ExtractionChecker {
   DateTime? _followUp(AiDocument doc, DateTime? date) {
     final exact = doc.followUpDate == null ? null : DateTime.tryParse(doc.followUpDate!);
     final from = date ?? today;
-    final result = exact ?? (doc.followUpDays != null && doc.followUpDays! > 0 && doc.followUpDays! <= 730 ? DateTime(from.year, from.month, from.day + doc.followUpDays!) : null);
+    final result =
+        exact ??
+        (doc.followUpDays != null && doc.followUpDays! > 0 && doc.followUpDays! <= 730
+            ? DateTime(from.year, from.month, from.day + doc.followUpDays!)
+            : null);
     return result != null && result.isAfter(from) ? result : null;
   }
 
@@ -551,7 +645,9 @@ class ExtractionChecker {
     final s = doc.patientSex?.toLowerCase().trim();
     final sex = member?.sex;
     if (s == null || sex == null) return null;
-    final printed = RegExp(r'^(f|female|woman|mrs|মহিলা|নারী)').hasMatch(s) ? 'F' : (RegExp(r'^(m|male|man|পুরুষ)').hasMatch(s) ? 'M' : null);
+    final printed = RegExp(r'^(f|female|woman|mrs|মহিলা|নারী)').hasMatch(s)
+        ? 'F'
+        : (RegExp(r'^(m|male|man|পুরুষ)').hasMatch(s) ? 'M' : null);
     if (printed == null || printed == sex) return null;
     return 'The document says ${doc.patientSex}, which differs from ${member!.name}\'s profile. Is this the right person?';
   }
@@ -577,12 +673,20 @@ class AiReader {
   AiReader(this.backend);
   final AiBackend backend;
 
-  Future<AiDocument> read({required List<AiImage> images, required List<String> localLines, AiCancelToken? cancel}) async {
+  Future<AiDocument> read({
+    required List<AiImage> images,
+    required List<String> localLines,
+    AiCancelToken? cancel,
+  }) async {
     final text = localLines.where((l) => l.trim().isNotEmpty).join('\n');
-    if (images.isEmpty && text.isEmpty) throw const AiException(AiErrorKind.unsupported, detail: 'No images or text to send.');
+    if (images.isEmpty && text.isEmpty) {
+      throw const AiException(AiErrorKind.unsupported, detail: 'No images or text to send.');
+    }
     final request = AiRequest(
       system: extractionSystemPrompt,
-      prompt: images.isEmpty ? '$extractionUserPrompt\n\nThe document, as text read by a scanner:\n<document>\n$text\n</document>' : extractionUserPrompt,
+      prompt: images.isEmpty
+          ? '$extractionUserPrompt\n\nThe document, as text read by a scanner:\n<document>\n$text\n</document>'
+          : extractionUserPrompt,
       images: images,
       schema: extractionSchema,
     );

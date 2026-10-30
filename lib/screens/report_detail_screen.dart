@@ -69,7 +69,12 @@ class ReportDetailScreen extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => ReportEditorScreen.edit(member: d.member, report: r, existingResults: d.results, attachments: d.attachments),
+                    builder: (_) => ReportEditorScreen.edit(
+                      member: d.member,
+                      report: r,
+                      existingResults: d.results,
+                      attachments: d.attachments,
+                    ),
                   ),
                 ),
               ),
@@ -77,7 +82,11 @@ class ReportDetailScreen extends StatelessWidget {
                 tooltip: 'Delete',
                 icon: const Icon(Icons.delete_outline_rounded),
                 onPressed: () async {
-                  final ok = await confirm(context, title: 'Delete this report?', message: 'Its values and original files will be removed from this device.');
+                  final ok = await confirm(
+                    context,
+                    title: 'Delete this report?',
+                    message: 'Its values and original files will be removed from this device.',
+                  );
                   if (!ok) return;
                   await AppDb.instance.deleteReport(r.id);
                   if (context.mounted) Navigator.pop(context);
@@ -102,10 +111,17 @@ class ReportDetailScreen extends StatelessWidget {
                     title: Text(d.doctor!.name),
                     subtitle: d.doctor!.details.isEmpty ? null : Text(d.doctor!.details),
                     trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorDetailScreen(doctorId: d.doctor!.id))),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => DoctorDetailScreen(doctorId: d.doctor!.id)),
+                    ),
                   ),
                 if (r.followUp != null)
-                  ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.event_rounded), title: Text('Follow-up ${dateFmt.format(r.followUp!)}')),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.event_rounded),
+                    title: Text('Follow-up ${dateFmt.format(r.followUp!)}'),
+                  ),
                 const SizedBox(height: 16),
                 if (d.attachments.isNotEmpty) ...[
                   AttachmentStrip(attachments: d.attachments),
@@ -117,30 +133,40 @@ class ReportDetailScreen extends StatelessWidget {
                     child: Text(panel, style: theme.textTheme.titleSmall),
                   ),
                   Card(
-                    child: Column(children: [
-                      for (final x in byPanel[panel]!) _ResultTile(result: x, member: d.member),
-                    ]),
+                    child: Column(
+                      children: [for (final x in byPanel[panel]!) _ResultTile(result: x, member: d.member)],
+                    ),
                   ),
                 ],
                 if (r.type == DocType.prescription || d.meds.medications.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 8),
-                    child: Row(children: [
-                      Expanded(child: Text('Medicines', style: theme.textTheme.titleSmall)),
-                      TextButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => MedicationFormScreen(member: d.member, reportId: r.id)),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text('Medicines', style: theme.textTheme.titleSmall)),
+                        TextButton.icon(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MedicationFormScreen(member: d.member, reportId: r.id),
+                            ),
+                          ),
+                          icon: const Icon(Icons.add_rounded),
+                          label: const Text('Add medicine'),
                         ),
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('Add medicine'),
-                      ),
-                    ]),
+                      ],
+                    ),
                   ),
                   if (d.meds.medications.isEmpty)
-                    Text('Add the medicines from this prescription to get dose reminders.', style: theme.textTheme.bodyMedium),
+                    Text(
+                      'Add the medicines from this prescription to get dose reminders.',
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   for (final m in d.meds.medications)
-                    Padding(padding: const EdgeInsets.only(bottom: 10), child: MedicationCard(medication: m, state: d.meds, member: d.member)),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: MedicationCard(medication: m, state: d.meds, member: d.member),
+                    ),
                 ],
                 if (r.notes != null) ...[
                   const SizedBox(height: 20),
@@ -150,7 +176,10 @@ class ReportDetailScreen extends StatelessWidget {
                 ],
                 if (r.extractedBy != null) ...[
                   const SizedBox(height: 20),
-                  Text('Read by ${r.extractedBy} and reviewed by you.', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  Text(
+                    'Read by ${r.extractedBy} and reviewed by you.',
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ),
                 ],
               ],
             ),
@@ -175,7 +204,9 @@ class _ResultTile extends StatelessWidget {
       subtitle: range.isEmpty ? null : 'Range $range',
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => TrendScreen(member: member, testKey: result.testKey, testName: result.testName)),
+        MaterialPageRoute(
+          builder: (_) => TrendScreen(member: member, testKey: result.testKey, testName: result.testName),
+        ),
       ),
     );
   }

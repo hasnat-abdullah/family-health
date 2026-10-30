@@ -6,7 +6,13 @@ import '../services/reminders.dart';
 import '../widgets/common.dart';
 
 class MedicationFormScreen extends StatefulWidget {
-  const MedicationFormScreen({super.key, required this.member, this.medication, this.reportId, this.fromPrescription = false});
+  const MedicationFormScreen({
+    super.key,
+    required this.member,
+    this.medication,
+    this.reportId,
+    this.fromPrescription = false,
+  });
   final Member member;
   final Medication? medication;
   final String? reportId;
@@ -43,7 +49,8 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
       showMessage(context, 'Add at least one dose time.');
       return false;
     }
-    final m = widget.medication ??
+    final m =
+        widget.medication ??
         Medication(memberId: widget.member.id, reportId: widget.reportId, name: '', times: const [], startDate: _start);
     m
       ..name = _name.text.trim()
@@ -87,7 +94,10 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
 
   Future<void> _editTime(int index) async {
     final cur = _times[index];
-    final t = await showTimePicker(context: context, initialTime: TimeOfDay(hour: cur ~/ 60, minute: cur % 60));
+    final t = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: cur ~/ 60, minute: cur % 60),
+    );
     if (t == null) return;
     setState(() => _times = ([..._times]..[index] = t.hour * 60 + t.minute)..sort());
   }
@@ -97,13 +107,18 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
     final theme = Theme.of(context);
     const gap = SizedBox(height: 16);
     final days = int.tryParse(_days.text.trim());
-    final end = (!_ongoing && days != null && days > 0) ? DateTime(_start.year, _start.month, _start.day + days - 1) : null;
+    final end = (!_ongoing && days != null && days > 0)
+        ? DateTime(_start.year, _start.month, _start.day + days - 1)
+        : null;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.medication == null ? 'Add medicine · ${widget.member.name}' : 'Edit medicine'),
         actions: [
-          Padding(padding: const EdgeInsets.only(right: 12), child: FilledButton(onPressed: _saveAndClose, child: const Text('Save'))),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton(onPressed: _saveAndClose, child: const Text('Save')),
+          ),
         ],
       ),
       body: ContentWidth(
@@ -117,7 +132,9 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    _added == 0 ? 'Prescription saved. Add each medicine on it to get reminders until the course is finished.' : '$_added medicine(s) added from this prescription.',
+                    _added == 0
+                        ? 'Prescription saved. Add each medicine on it to get reminders until the course is finished.'
+                        : '$_added medicine(s) added from this prescription.',
                     style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                   ),
                 ),
@@ -136,60 +153,77 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
               gap,
               Text('How often', style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final e in _presets.entries)
-                  ChoiceChip(
-                    label: Text(e.key),
-                    selected: _sameTimes(_times, e.value),
-                    onSelected: (_) => setState(() => _times = [...e.value]),
-                  ),
-              ]),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final e in _presets.entries)
+                    ChoiceChip(
+                      label: Text(e.key),
+                      selected: _sameTimes(_times, e.value),
+                      onSelected: (_) => setState(() => _times = [...e.value]),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
-              Wrap(spacing: 8, runSpacing: 8, children: [
-                for (final (i, t) in _times.indexed)
-                  InputChip(
-                    avatar: const Icon(Icons.alarm_rounded, size: 18),
-                    label: Text(formatTime(context, t)),
-                    onPressed: () => _editTime(i),
-                    onDeleted: () => setState(() => _times = [..._times]..removeAt(i)),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (i, t) in _times.indexed)
+                    InputChip(
+                      avatar: const Icon(Icons.alarm_rounded, size: 18),
+                      label: Text(formatTime(context, t)),
+                      onPressed: () => _editTime(i),
+                      onDeleted: () => setState(() => _times = [..._times]..removeAt(i)),
+                    ),
+                  ActionChip(
+                    avatar: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('Add time'),
+                    onPressed: _addTime,
                   ),
-                ActionChip(avatar: const Icon(Icons.add_rounded, size: 18), label: const Text('Add time'), onPressed: _addTime),
-              ]),
+                ],
+              ),
               gap,
-              Row(children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final d = await showDatePicker(
-                        context: context,
-                        initialDate: _start,
-                        firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (d != null) setState(() => _start = d);
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(labelText: 'Start date', suffixIcon: Icon(Icons.calendar_today_rounded)),
-                      child: Text(dateFmt.format(_start)),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        final d = await showDatePicker(
+                          context: context,
+                          initialDate: _start,
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (d != null) setState(() => _start = d);
+                      },
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Start date',
+                          suffixIcon: Icon(Icons.calendar_today_rounded),
+                        ),
+                        child: Text(dateFmt.format(_start)),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _days,
-                    enabled: !_ongoing,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'For how many days'),
-                    onChanged: (_) => setState(() {}),
-                    validator: (v) {
-                      if (_ongoing) return null;
-                      final n = int.tryParse(v?.trim() ?? '');
-                      return (n == null || n < 1 || n > 3650) ? 'Enter days' : null;
-                    },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _days,
+                      enabled: !_ongoing,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'For how many days'),
+                      onChanged: (_) => setState(() {}),
+                      validator: (v) {
+                        if (_ongoing) return null;
+                        final n = int.tryParse(v?.trim() ?? '');
+                        return (n == null || n < 1 || n > 3650) ? 'Enter days' : null;
+                      },
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Ongoing (no end date)'),
@@ -205,7 +239,10 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
               gap,
               TextFormField(
                 controller: _instructions,
-                decoration: const InputDecoration(labelText: 'Instructions (optional)', hintText: 'e.g. after meal, with water'),
+                decoration: const InputDecoration(
+                  labelText: 'Instructions (optional)',
+                  hintText: 'e.g. after meal, with water',
+                ),
               ),
               const SizedBox(height: 8),
               SwitchListTile(
@@ -218,13 +255,21 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
               ),
               if (widget.fromPrescription) ...[
                 gap,
-                OutlinedButton.icon(onPressed: _saveAndAddAnother, icon: const Icon(Icons.add_rounded), label: const Text('Save & add another medicine')),
+                OutlinedButton.icon(
+                  onPressed: _saveAndAddAnother,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Save & add another medicine'),
+                ),
               ],
               if (widget.medication != null) ...[
                 gap,
                 TextButton.icon(
                   onPressed: () async {
-                    final ok = await confirm(context, title: 'Delete ${widget.medication!.name}?', message: 'Its reminders and dose history will be removed.');
+                    final ok = await confirm(
+                      context,
+                      title: 'Delete ${widget.medication!.name}?',
+                      message: 'Its reminders and dose history will be removed.',
+                    );
                     if (!ok) return;
                     await AppDb.instance.deleteMedication(widget.medication!.id);
                     if (context.mounted) Navigator.pop(context);
@@ -240,5 +285,6 @@ class _MedicationFormScreenState extends State<MedicationFormScreen> {
     );
   }
 
-  static bool _sameTimes(List<int> a, List<int> b) => a.length == b.length && [for (var i = 0; i < a.length; i++) a[i] == b[i]].every((x) => x);
+  static bool _sameTimes(List<int> a, List<int> b) =>
+      a.length == b.length && [for (var i = 0; i < a.length; i++) a[i] == b[i]].every((x) => x);
 }

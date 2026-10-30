@@ -26,7 +26,13 @@ Future<T> withProgress<T>(BuildContext context, String message, Future<T> Functi
     builder: (_) => PopScope(
       canPop: false,
       child: AlertDialog(
-        content: Row(children: [const CircularProgressIndicator(), const SizedBox(width: 20), Expanded(child: Text(message))]),
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 20),
+            Expanded(child: Text(message)),
+          ],
+        ),
       ),
     ),
   );
@@ -41,10 +47,19 @@ Future<T> withProgress<T>(BuildContext context, String message, Future<T> Functi
 Future<void> exportBackupFlow(BuildContext context, {Member? member}) async {
   final password = await askNewBackupPassword(context);
   if (password == null || !context.mounted) return;
-  final bytes = await withProgress(context, 'Encrypting backup…', () => BackupService.export(memberId: member?.id, password: password));
+  final bytes = await withProgress(
+    context,
+    'Encrypting backup…',
+    () => BackupService.export(memberId: member?.id, password: password),
+  );
   if (!context.mounted) return;
   final name = member == null ? 'family' : member.name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
-  final saved = await FileIO.saveOrShare(context, '$name-${_stamp()}.${BackupService.extension}', bytes, mime: 'application/octet-stream');
+  final saved = await FileIO.saveOrShare(
+    context,
+    '$name-${_stamp()}.${BackupService.extension}',
+    bytes,
+    mime: 'application/octet-stream',
+  );
   if (saved && context.mounted) showMessage(context, 'Encrypted backup exported.');
 }
 
@@ -61,7 +76,11 @@ Future<void> importBackupFlow(BuildContext context) async {
       if (password == null || !context.mounted) return;
     }
     try {
-      final s = await withProgress(context, 'Decrypting and importing…', () => BackupService.import(bytes, password: password));
+      final s = await withProgress(
+        context,
+        'Decrypting and importing…',
+        () => BackupService.import(bytes, password: password),
+      );
       // Reminders for imported medicines need permission on this device too.
       if (s.medicines > 0) await Reminders.requestPermission();
       if (!context.mounted) return;
@@ -69,9 +88,11 @@ Future<void> importBackupFlow(BuildContext context) async {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Import complete'),
-          content: Text(s.isEmpty
-              ? 'Everything in this backup was already on this device.'
-              : 'Added or updated:\n• ${s.members} member profile(s)\n• ${s.reports} report(s) & document(s)\n• ${s.results} result(s)\n• ${s.medicines} medicine(s)\n• ${s.files} original file(s)'),
+          content: Text(
+            s.isEmpty
+                ? 'Everything in this backup was already on this device.'
+                : 'Added or updated:\n• ${s.members} member profile(s)\n• ${s.reports} report(s) & document(s)\n• ${s.results} result(s)\n• ${s.medicines} medicine(s)\n• ${s.files} original file(s)',
+          ),
           actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
         ),
       );
@@ -92,7 +113,8 @@ class BackupScreen extends StatelessWidget {
     final ok = await confirm(
       context,
       title: 'Export unencrypted CSV?',
-      message: 'Spreadsheet files cannot be password-protected. Anyone who gets this file can read the results. '
+      message:
+          'Spreadsheet files cannot be password-protected. Anyone who gets this file can read the results. '
           'Use an encrypted backup to move records between devices.',
       action: 'Export CSV',
     );
@@ -106,13 +128,21 @@ class BackupScreen extends StatelessWidget {
       results.addAll(await db.resultsForMember(m.id));
     }
     if (!context.mounted) return;
-    await FileIO.saveOrShare(context, 'family-results-${_stamp()}.csv', utf8.encode(CsvService.export(members, reports, results)), mime: 'text/csv');
+    await FileIO.saveOrShare(
+      context,
+      'family-results-${_stamp()}.csv',
+      utf8.encode(CsvService.export(members, reports, results)),
+      mime: 'text/csv',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    Widget heading(String t) => Padding(padding: const EdgeInsets.fromLTRB(0, 24, 0, 8), child: Text(t, style: theme.textTheme.titleSmall));
+    Widget heading(String t) => Padding(
+      padding: const EdgeInsets.fromLTRB(0, 24, 0, 8),
+      child: Text(t, style: theme.textTheme.titleSmall),
+    );
     return Scaffold(
       appBar: AppBar(title: const Text('Security & backup')),
       body: DbBuilder<List<Member>>(
@@ -167,24 +197,26 @@ class BackupScreen extends StatelessWidget {
               ),
               heading('Export encrypted backup (includes original photos & PDFs)'),
               Card(
-                child: Column(children: [
-                  ListTile(
-                    leading: const Icon(Icons.family_restroom_rounded),
-                    title: const Text('Whole family'),
-                    subtitle: Text('${members.length} member(s)'),
-                    trailing: const Icon(Icons.lock_rounded),
-                    enabled: members.isNotEmpty,
-                    onTap: () => exportBackupFlow(context),
-                  ),
-                  for (final m in members)
+                child: Column(
+                  children: [
                     ListTile(
-                      leading: MemberAvatar(m, radius: 16),
-                      title: Text(m.name),
-                      subtitle: m.relation == null ? null : Text(m.relation!),
+                      leading: const Icon(Icons.family_restroom_rounded),
+                      title: const Text('Whole family'),
+                      subtitle: Text('${members.length} member(s)'),
                       trailing: const Icon(Icons.lock_rounded),
-                      onTap: () => exportBackupFlow(context, member: m),
+                      enabled: members.isNotEmpty,
+                      onTap: () => exportBackupFlow(context),
                     ),
-                ]),
+                    for (final m in members)
+                      ListTile(
+                        leading: MemberAvatar(m, radius: 16),
+                        title: Text(m.name),
+                        subtitle: m.relation == null ? null : Text(m.relation!),
+                        trailing: const Icon(Icons.lock_rounded),
+                        onTap: () => exportBackupFlow(context, member: m),
+                      ),
+                  ],
+                ),
               ),
               heading('Spreadsheet'),
               Card(
@@ -230,9 +262,7 @@ class _AppLockTileState extends State<_AppLockTile> {
         secondary: const Icon(Icons.fingerprint_rounded),
         title: const Text('App lock'),
         subtitle: Text(
-          _available == false
-              ? 'Set up a passcode, Face ID, Touch ID or fingerprint on this device to use app lock.'
-              : 'Require Face ID, Touch ID, fingerprint or your device passcode to open the app, and after it has been in the background for a minute.',
+          _available == false ? 'Set up a passcode, Face ID, Touch ID or fingerprint on this device to use app lock.' : 'Require Face ID, Touch ID, fingerprint or your device passcode to open the app, and after it has been in the background for a minute.',
         ),
         value: AppLock.enabled,
         onChanged: !available

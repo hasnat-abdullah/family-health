@@ -73,28 +73,42 @@ class FileIO {
 
   static Future<Picked?> takePhoto() async {
     final shot = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 90, maxWidth: 3000);
-    return shot == null ? null : (file: File(shot.path), name: 'Photo ${DateTime.now().toIso8601String().substring(0, 10)}.jpg');
+    return shot == null
+        ? null
+        : (file: File(shot.path), name: 'Photo ${DateTime.now().toIso8601String().substring(0, 10)}.jpg');
   }
 
   /// Saves (desktop) or shares (phone/tablet: AirDrop, Files, WhatsApp, email…).
   /// Returns false if the user cancelled.
-  static Future<bool> saveOrShare(BuildContext context, String fileName, Uint8List bytes, {String mime = 'application/octet-stream'}) async {
+  static Future<bool> saveOrShare(
+    BuildContext context,
+    String fileName,
+    Uint8List bytes, {
+    String mime = 'application/octet-stream',
+  }) async {
     if (debugSave != null) return debugSave!(fileName, bytes);
     if (isMobile) {
       final box = context.findRenderObject() as RenderBox?;
       final tmp = File(p.join((await getTemporaryDirectory()).path, fileName));
       await tmp.writeAsBytes(bytes);
       try {
-        final result = await SharePlus.instance.share(ShareParams(
-          files: [XFile(tmp.path, mimeType: mime)],
-          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-        ));
+        final result = await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(tmp.path, mimeType: mime)],
+            sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+          ),
+        );
         return result.status != ShareResultStatus.dismissed;
       } finally {
         if (await tmp.exists()) await tmp.delete();
       }
     }
-    final uri = await FilePicker.saveFile(fileName: fileName, bytes: bytes, mimeType: mime, dialogTitle: 'Save $fileName');
+    final uri = await FilePicker.saveFile(
+      fileName: fileName,
+      bytes: bytes,
+      mimeType: mime,
+      dialogTitle: 'Save $fileName',
+    );
     return uri != null;
   }
 
@@ -103,11 +117,13 @@ class FileIO {
     if (isMobile) {
       final box = context.findRenderObject() as RenderBox?;
       await FileStore.instance.withPlainFile(a, (plain) async {
-        await SharePlus.instance.share(ShareParams(
-          files: [XFile(plain.path, mimeType: a.mime)],
-          fileNameOverrides: [a.originalName],
-          sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
-        ));
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(plain.path, mimeType: a.mime)],
+            fileNameOverrides: [a.originalName],
+            sharePositionOrigin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
+          ),
+        );
       });
     } else {
       final bytes = await FileStore.instance.read(a);

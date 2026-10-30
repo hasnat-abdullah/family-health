@@ -92,6 +92,18 @@ void main() {
     await tester.enterText(valueFor('Hemoglobin'), '12.6');
     await reveal(find.text('ESR'));
     await tester.enterText(valueFor('ESR'), '35');
+    for (final (test, value) in [('Platelet', '240'), ('MPV', '9.4'), ('Absolute N', '4.2'), ('Absolute L', '2.1')]) {
+      final label = find.textContaining(test);
+      await tester.ensureVisible(label.first);
+      await tester.enterText(
+        find.descendant(
+          of: find.ancestor(of: label.first, matching: find.byType(Row)).first,
+          matching: find.byType(TextField),
+        ),
+        value,
+      );
+    }
+    FocusManager.instance.primaryFocus?.unfocus();
     await settle(tester, rounds: 3);
     await shot('manual_entry');
     await discard();
@@ -115,8 +127,6 @@ void main() {
     await tester.tap(find.byTooltip('Security & backup'));
     await settle(tester);
     await shot('backup');
-    await tapText(tester, 'AI document reading');
-    await shot('ai_settings');
     await back();
 
     await tester.tap(find.byTooltip('Doctors'));

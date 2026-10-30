@@ -56,12 +56,14 @@ class Reminders {
   static Future<bool> requestPermission() async {
     if (!_ready) return false;
     if (Platform.isIOS) {
-      return await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+      return await _plugin
+              .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
               ?.requestPermissions(alert: true, sound: true, badge: true) ??
           false;
     }
     if (Platform.isMacOS) {
-      return await _plugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
+      return await _plugin
+              .resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()
               ?.requestPermissions(alert: true, sound: true, badge: true) ??
           false;
     }
@@ -88,8 +90,16 @@ class Reminders {
   /// Apple's silent "provisional" permission, so tests need no system prompt.
   @visibleForTesting
   static Future<void> grantProvisionalForTest() async {
-    await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(provisional: true, alert: true, sound: true);
-    await _plugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()?.requestPermissions(provisional: true, alert: true, sound: true);
+    await _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+      provisional: true,
+      alert: true,
+      sound: true,
+    );
+    await _plugin.resolvePlatformSpecificImplementation<MacOSFlutterLocalNotificationsPlugin>()?.requestPermissions(
+      provisional: true,
+      alert: true,
+      sound: true,
+    );
   }
 
   static int _pendingRun = 0;
@@ -139,7 +149,9 @@ class Reminders {
 
     var exact = false;
     if (Platform.isAndroid) {
-      exact = await _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      exact =
+          await _plugin
+              .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
               ?.canScheduleExactNotifications() ??
           false;
     }
@@ -174,7 +186,9 @@ class Reminders {
         id: _followUpIdBase + i,
         scheduledDate: tz.TZDateTime.from(at, tz.local),
         notificationDetails: details,
-        androidScheduleMode: exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: exact
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
         title: 'Follow-up ${at.day == f.day ? 'today' : 'tomorrow'}',
         body: [?members[r.memberId]?.name, r.title, ?doctor?.name].join(' · '),
         payload: r.id,
@@ -189,7 +203,9 @@ class Reminders {
         id: i,
         scheduledDate: tz.TZDateTime.from(slot, tz.local),
         notificationDetails: details,
-        androidScheduleMode: exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: exact
+            ? AndroidScheduleMode.exactAllowWhileIdle
+            : AndroidScheduleMode.inexactAllowWhileIdle,
         title: '💊 ${m.name}${m.dose == null ? '' : ' — ${m.dose}'}',
         body: [if (who.isNotEmpty) 'For $who', ?m.instructions].join(' · ') + course,
         payload: m.id,

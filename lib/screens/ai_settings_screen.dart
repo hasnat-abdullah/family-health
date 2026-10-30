@@ -107,8 +107,12 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
     });
     try {
       final backend = AiBackend.from(_settings, _provider);
-      await backend.complete(const AiRequest(system: 'Reply with JSON only.', prompt: pingPrompt, schema: pingSchema, maxTokens: 1024));
-      final models = _provider == AiProvider.local ? await backend.listModels().catchError((_) => const <String>[]) : const <String>[];
+      await backend.complete(
+        const AiRequest(system: 'Reply with JSON only.', prompt: pingPrompt, schema: pingSchema, maxTokens: 1024),
+      );
+      final models = _provider == AiProvider.local
+          ? await backend.listModels().catchError((_) => const <String>[])
+          : const <String>[];
       if (!mounted) return;
       setState(() {
         _testOk = true;
@@ -137,7 +141,10 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
       appBar: AppBar(
         title: const Text('AI document reading'),
         actions: [
-          Padding(padding: const EdgeInsets.only(right: 12), child: FilledButton(onPressed: _save, child: const Text('Save'))),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton(onPressed: _save, child: const Text('Save')),
+          ),
         ],
       ),
       body: ContentWidth(
@@ -170,8 +177,16 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
               Card(
                 child: ListTile(
                   leading: Icon(_provider.isCloud ? Icons.cloud_outlined : Icons.computer_rounded),
-                  title: Text(_provider.isCloud ? 'Pages are sent to ${_provider.label}' : 'Pages stay on your own machine or network'),
-                  subtitle: Text(_provider.isCloud ? 'Only the document you are reading, and only with your API key. You are asked once before the first one.' : 'Works with Ollama, LM Studio or any OpenAI-compatible server. Use a vision model to send page images.'),
+                  title: Text(
+                    _provider.isCloud
+                        ? 'Pages are sent to ${_provider.label}'
+                        : 'Pages stay on your own machine or network',
+                  ),
+                  subtitle: Text(
+                    _provider.isCloud
+                        ? 'Only the document you are reading, and only with your API key. You are asked once before the first one.'
+                        : 'Works with Ollama, LM Studio or any OpenAI-compatible server. Use a vision model to send page images.',
+                  ),
                 ),
               ),
               if (_provider != AiProvider.local || _key.text.isNotEmpty) ...[
@@ -201,46 +216,75 @@ class _AiSettingsScreenState extends State<AiSettingsScreen> {
                 TextField(
                   controller: _url,
                   autocorrect: false,
-                  decoration: InputDecoration(labelText: 'Server address', hintText: _provider.defaultBaseUrl, helperText: 'Ollama: port 11434. LM Studio: port 1234. From a phone, use your computer\'s network address.'),
+                  decoration: InputDecoration(
+                    labelText: 'Server address',
+                    hintText: _provider.defaultBaseUrl,
+                    helperText:
+                        'Ollama: port 11434. LM Studio: port 1234. From a phone, use your computer\'s network address.',
+                  ),
                 ),
               ],
               gap,
               TextField(
                 controller: _model,
                 autocorrect: false,
-                decoration: InputDecoration(labelText: 'Model', hintText: _provider.models.firstOrNull ?? 'e.g. a vision model you have installed'),
+                decoration: InputDecoration(
+                  labelText: 'Model',
+                  hintText: _provider.models.firstOrNull ?? 'e.g. a vision model you have installed',
+                ),
                 onChanged: (_) => setState(() {}),
               ),
               if (suggestions.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Wrap(spacing: 8, runSpacing: 4, children: [
-                  for (final m in suggestions)
-                    ChoiceChip(label: Text(m), selected: _model.text.trim() == m || (_model.text.trim().isEmpty && m == suggestions.first), onSelected: (_) => setState(() => _model.text = m)),
-                ]),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final m in suggestions)
+                      ChoiceChip(
+                        label: Text(m),
+                        selected: _model.text.trim() == m || (_model.text.trim().isEmpty && m == suggestions.first),
+                        onSelected: (_) => setState(() => _model.text = m),
+                      ),
+                  ],
+                ),
               ],
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Send page images'),
-                subtitle: const Text('Best accuracy. Turn off to send only text read on this device (for text-only models, or to share less); tables and handwriting then read much less well.'),
+                subtitle: const Text(
+                  'Best accuracy. Turn off to send only text read on this device (for text-only models, or to share less); tables and handwriting then read much less well.',
+                ),
                 value: _sendImages,
                 onChanged: (v) => setState(() => _sendImages = v),
               ),
               const SizedBox(height: 8),
-              Row(children: [
-                OutlinedButton.icon(
-                  onPressed: _testing ? null : _test,
-                  icon: _testing ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.wifi_tethering_rounded),
-                  label: const Text('Test connection'),
-                ),
-              ]),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _testing ? null : _test,
+                    icon: _testing
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.wifi_tethering_rounded),
+                    label: const Text('Test connection'),
+                  ),
+                ],
+              ),
               if (_testResult != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Icon(_testOk ? Icons.check_circle_outline_rounded : Icons.error_outline_rounded, color: _testOk ? theme.colorScheme.primary : theme.colorScheme.error, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(child: SelectableText(_testResult!)),
-                  ]),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        _testOk ? Icons.check_circle_outline_rounded : Icons.error_outline_rounded,
+                        color: _testOk ? theme.colorScheme.primary : theme.colorScheme.error,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: SelectableText(_testResult!)),
+                    ],
+                  ),
                 ),
             ],
           ],

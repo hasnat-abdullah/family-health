@@ -35,7 +35,8 @@ class HomeScreen extends StatelessWidget {
     final members = await db.memberSummaries();
     final byId = {for (final s in members) s.member.id: s.member};
     return _HomeData(members, await MedState.load(), [
-      for (final r in await db.upcomingFollowUps()) _FollowUp(r, byId[r.memberId], r.doctorId == null ? null : await db.doctor(r.doctorId!)),
+      for (final r in await db.upcomingFollowUps())
+        _FollowUp(r, byId[r.memberId], r.doctorId == null ? null : await db.doctor(r.doctorId!)),
     ]);
   }
 
@@ -87,62 +88,87 @@ class HomeScreen extends StatelessWidget {
           final flagged = members.where((s) => s.attention.isNotEmpty).toList();
           final hasDoses = data.meds.todaySlots().isNotEmpty;
 
-          return LayoutBuilder(builder: (context, c) {
-            final columns = (c.maxWidth / 340).floor().clamp(1, 4);
-            // Dashboard cards sit side by side on wide screens.
-            final dashWide = c.maxWidth >= 900 && hasDoses && flagged.isNotEmpty;
-            Widget attention(MemberSummary s) => AttentionCard(
-              title: s.member.name,
-              leading: MemberAvatar(s.member, radius: 12),
-              items: s.attention,
-              onHeaderTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MemberScreen(memberId: s.member.id))),
-              onTap: (r) => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => TrendScreen(member: s.member, testKey: r.testKey, testName: r.testName)),
-              ),
-            );
-            final dashboard = <Widget>[
-              if (hasDoses) TodayDoses(state: data.meds, showMember: members.length > 1, collapsedRows: 4),
-              if (data.followUps.isNotEmpty) _FollowUpsCard(data.followUps),
-              for (final s in flagged) attention(s),
-            ];
+          return LayoutBuilder(
+            builder: (context, c) {
+              final columns = (c.maxWidth / 340).floor().clamp(1, 4);
+              // Dashboard cards sit side by side on wide screens.
+              final dashWide = c.maxWidth >= 900 && hasDoses && flagged.isNotEmpty;
+              Widget attention(MemberSummary s) => AttentionCard(
+                title: s.member.name,
+                leading: MemberAvatar(s.member, radius: 12),
+                items: s.attention,
+                onHeaderTap: () =>
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => MemberScreen(memberId: s.member.id))),
+                onTap: (r) => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TrendScreen(member: s.member, testKey: r.testKey, testName: r.testName),
+                  ),
+                ),
+              );
+              final dashboard = <Widget>[
+                if (hasDoses) TodayDoses(state: data.meds, showMember: members.length > 1, collapsedRows: 4),
+                if (data.followUps.isNotEmpty) _FollowUpsCard(data.followUps),
+                for (final s in flagged) attention(s),
+              ];
 
-            return CustomScrollView(slivers: [
-              if (dashboard.isNotEmpty)
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: dashWide
-                        ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Expanded(child: dashboard.first),
-                            const SizedBox(width: 12),
-                            Expanded(child: Column(children: [for (final w in dashboard.skip(1)) Padding(padding: const EdgeInsets.only(bottom: 12), child: w)])),
-                          ])
-                        : Column(children: [for (final w in dashboard) Padding(padding: const EdgeInsets.only(bottom: 12), child: w)]),
+              return CustomScrollView(
+                slivers: [
+                  if (dashboard.isNotEmpty)
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      sliver: SliverToBoxAdapter(
+                        child: dashWide
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: dashboard.first),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        for (final w in dashboard.skip(1))
+                                          Padding(padding: const EdgeInsets.only(bottom: 12), child: w),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  for (final w in dashboard)
+                                    Padding(padding: const EdgeInsets.only(bottom: 12), child: w),
+                                ],
+                              ),
+                      ),
+                    ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text('Family', style: Theme.of(context).textTheme.titleSmall),
+                      ),
+                    ),
                   ),
-                ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                sliver: SliverToBoxAdapter(
-                  child: Align(alignment: AlignmentDirectional.centerStart, child: Text('Family', style: Theme.of(context).textTheme.titleSmall)),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                // Cards size to their content, so long names and large text never clip.
-                sliver: SliverToBoxAdapter(
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      for (final m in members)
-                        SizedBox(width: (c.maxWidth - 32 - 12 * (columns - 1)) / columns, child: _MemberCard(m)),
-                    ],
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                    // Cards size to their content, so long names and large text never clip.
+                    sliver: SliverToBoxAdapter(
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          for (final m in members)
+                            SizedBox(width: (c.maxWidth - 32 - 12 * (columns - 1)) / columns, child: _MemberCard(m)),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ]);
-          });
+                ],
+              );
+            },
+          );
         },
       ),
     );
@@ -159,24 +185,32 @@ class _FollowUpsCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Row(children: [
-              Icon(Icons.event_rounded, size: 20, color: theme.colorScheme.primary),
-              const SizedBox(width: 8),
-              Text('Follow-ups', style: theme.textTheme.titleSmall),
-            ]),
-          ),
-          for (final f in items.take(4))
-            ListTile(
-              dense: true,
-              leading: f.member == null ? null : MemberAvatar(f.member!, radius: 14),
-              title: Text(dateFmt.format(f.report.followUp!)),
-              subtitle: Text([?f.member?.name, f.report.title, ?f.doctor?.name].join(' · ')),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: f.report.id))),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Row(
+                children: [
+                  Icon(Icons.event_rounded, size: 20, color: theme.colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text('Follow-ups', style: theme.textTheme.titleSmall),
+                ],
+              ),
             ),
-        ]),
+            for (final f in items.take(4))
+              ListTile(
+                dense: true,
+                leading: f.member == null ? null : MemberAvatar(f.member!, radius: 14),
+                title: Text(dateFmt.format(f.report.followUp!)),
+                subtitle: Text([?f.member?.name, f.report.title, ?f.doctor?.name].join(' · ')),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: f.report.id)),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -191,11 +225,7 @@ class _MemberCard extends StatelessWidget {
     final m = summary.member;
     final theme = Theme.of(context);
     final muted = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
-    final details = [
-      ?m.relation,
-      if (m.age != null) '${m.age} yrs',
-      ?m.bloodGroup,
-    ].join(' · ');
+    final details = [?m.relation, if (m.age != null) '${m.age} yrs', ?m.bloodGroup].join(' · ');
     final outOfRange = summary.attention.length;
 
     return Card(
@@ -219,8 +249,11 @@ class _MemberCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       [
-                        summary.reportCount == 0 ? 'No records yet' : '${summary.reportCount} record${summary.reportCount == 1 ? '' : 's'}',
-                        if (summary.activeMedicines > 0) '${summary.activeMedicines} medicine${summary.activeMedicines == 1 ? '' : 's'}',
+                        summary.reportCount == 0
+                            ? 'No records yet'
+                            : '${summary.reportCount} record${summary.reportCount == 1 ? '' : 's'}',
+                        if (summary.activeMedicines > 0)
+                          '${summary.activeMedicines} medicine${summary.activeMedicines == 1 ? '' : 's'}',
                       ].join(' · '),
                       style: muted,
                       maxLines: 1,

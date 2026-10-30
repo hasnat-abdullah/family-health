@@ -53,13 +53,20 @@ class _TrendScreenState extends State<TrendScreen> {
                 Text(widget.member.name, style: muted),
                 if (latest != null) ...[
                   const SizedBox(height: 4),
-                  Row(crossAxisAlignment: CrossAxisAlignment.baseline, textBaseline: TextBaseline.alphabetic, children: [
-                    Text(formatValue(latest), style: valueStyle(context, latest.flag, base: theme.textTheme.displaySmall)),
-                    const SizedBox(width: 6),
-                    Text(latest.unit ?? '', style: theme.textTheme.titleMedium),
-                    const SizedBox(width: 12),
-                    FlagBadge(latest.flag),
-                  ]),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        formatValue(latest),
+                        style: valueStyle(context, latest.flag, base: theme.textTheme.displaySmall),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(latest.unit ?? '', style: theme.textTheme.titleMedium),
+                      const SizedBox(width: 12),
+                      FlagBadge(latest.flag),
+                    ],
+                  ),
                   Text(
                     'Latest · ${dateFmt.format(latest.date)}'
                     '${formatRange(latest.refLow, latest.refHigh).isEmpty ? '' : ' · reference ${formatRange(latest.refLow, latest.refHigh)}'}',
@@ -81,28 +88,35 @@ class _TrendScreenState extends State<TrendScreen> {
                   height: 280,
                   child: numeric.isEmpty
                       ? Center(child: Text('No numeric results in this period.', style: muted))
-                      : Padding(padding: const EdgeInsets.only(right: 12), child: TrendChart(results: numeric)),
+                      : Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: TrendChart(results: numeric),
+                        ),
                 ),
                 const SizedBox(height: 8),
                 _Legend(),
-                if (numeric.length >= 2) ...[
-                  const SizedBox(height: 20),
-                  _Stats(results: numeric),
-                ],
+                if (numeric.length >= 2) ...[const SizedBox(height: 20), _Stats(results: numeric)],
                 const SizedBox(height: 24),
                 Text('All results', style: theme.textTheme.titleSmall),
                 const SizedBox(height: 4),
                 Card(
-                  child: Column(children: [
-                    for (final r in results.reversed)
-                      ResultTile(
-                        result: r,
-                        title: dateFmt.format(r.date),
-                        subtitle: formatRange(r.refLow, r.refHigh).isEmpty ? null : 'Range ${formatRange(r.refLow, r.refHigh)}',
-                        base: theme.textTheme.bodyLarge,
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: r.reportId))),
-                      ),
-                  ]),
+                  child: Column(
+                    children: [
+                      for (final r in results.reversed)
+                        ResultTile(
+                          result: r,
+                          title: dateFmt.format(r.date),
+                          subtitle: formatRange(r.refLow, r.refHigh).isEmpty
+                              ? null
+                              : 'Range ${formatRange(r.refLow, r.refHigh)}',
+                          base: theme.textTheme.bodyLarge,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: r.reportId)),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -123,11 +137,37 @@ class _Legend extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final style = theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant);
-    Widget swatch(Widget mark, String label) => Row(mainAxisSize: MainAxisSize.min, children: [mark, const SizedBox(width: 6), Text(label, style: style)]);
-    return Wrap(spacing: 16, runSpacing: 4, children: [
-      swatch(Container(width: 14, height: 10, decoration: BoxDecoration(color: const Color(0x330ca30c), borderRadius: BorderRadius.circular(2))), 'Reference range'),
-      swatch(const Row(children: [Icon(Icons.circle, size: 10, color: Color(0xffd03b3b)), Icon(Icons.arrow_upward_rounded, size: 12, color: Color(0xffd03b3b))]), 'Out of range'),
-    ]);
+    Widget swatch(Widget mark, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        mark,
+        const SizedBox(width: 6),
+        Text(label, style: style),
+      ],
+    );
+    return Wrap(
+      spacing: 16,
+      runSpacing: 4,
+      children: [
+        swatch(
+          Container(
+            width: 14,
+            height: 10,
+            decoration: BoxDecoration(color: const Color(0x330ca30c), borderRadius: BorderRadius.circular(2)),
+          ),
+          'Reference range',
+        ),
+        swatch(
+          const Row(
+            children: [
+              Icon(Icons.circle, size: 10, color: Color(0xffd03b3b)),
+              Icon(Icons.arrow_upward_rounded, size: 12, color: Color(0xffd03b3b)),
+            ],
+          ),
+          'Out of range',
+        ),
+      ],
+    );
   }
 }
 
@@ -150,18 +190,28 @@ class _Stats extends StatelessWidget {
       ('Out of range', '$outOfRange of ${results.length}'),
     ];
     final theme = Theme.of(context);
-    return Wrap(spacing: 12, runSpacing: 12, children: [
-      for (final (label, value) in tiles)
-        Container(
-          constraints: const BoxConstraints(minWidth: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(color: theme.colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(12)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 2),
-            Text(value, style: theme.textTheme.titleMedium),
-          ]),
-        ),
-    ]);
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        for (final (label, value) in tiles)
+          Container(
+            constraints: const BoxConstraints(minWidth: 120),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 2),
+                Text(value, style: theme.textTheme.titleMedium),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }

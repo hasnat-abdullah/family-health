@@ -42,7 +42,10 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
       // Next unused colour, in palette order.
       AppDb.instance.members().then((all) {
         final used = all.map((m) => m.colorValue).toSet();
-        final next = memberColors.firstWhere((c) => !used.contains(c.toARGB32()), orElse: () => memberColors[all.length % memberColors.length]);
+        final next = memberColors.firstWhere(
+          (c) => !used.contains(c.toARGB32()),
+          orElse: () => memberColors[all.length % memberColors.length],
+        );
         if (mounted && _color == null) setState(() => _color = next.toARGB32());
       });
     }
@@ -78,12 +81,29 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
       context: context,
       showDragHandle: true,
       builder: (context) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (isMobile) ListTile(leading: const Icon(Icons.photo_camera_rounded), title: const Text('Take a photo'), onTap: () => Navigator.pop(context, 'camera')),
-          ListTile(leading: const Icon(Icons.photo_library_rounded), title: const Text('Choose a picture'), onTap: () => Navigator.pop(context, 'pick')),
-          if (_hasPhoto) ListTile(leading: const Icon(Icons.delete_outline_rounded), title: const Text('Remove picture'), onTap: () => Navigator.pop(context, 'remove')),
-          const SizedBox(height: 8),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isMobile)
+              ListTile(
+                leading: const Icon(Icons.photo_camera_rounded),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.pop(context, 'camera'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose a picture'),
+              onTap: () => Navigator.pop(context, 'pick'),
+            ),
+            if (_hasPhoto)
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded),
+                title: const Text('Remove picture'),
+                onTap: () => Navigator.pop(context, 'remove'),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
     if (choice == null) return;
@@ -124,7 +144,10 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
       appBar: AppBar(
         title: Text(widget.member == null ? 'New member' : 'Edit profile'),
         actions: [
-          Padding(padding: const EdgeInsets.only(right: 12), child: FilledButton(onPressed: _save, child: const Text('Save'))),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton(onPressed: _save, child: const Text('Save')),
+          ),
         ],
       ),
       body: ContentWidth(
@@ -141,26 +164,32 @@ class _MemberFormScreenState extends State<MemberFormScreen> {
                   child: InkWell(
                     customBorder: const CircleBorder(),
                     onTap: _changePhoto,
-                    child: Stack(children: [
-                      MemberAvatar(
-                        Member(
-                          name: _name.text.trim().isEmpty ? '?' : _name.text,
-                          colorValue: _color ?? memberColors.first.toARGB32(),
-                          photoFile: _removePhoto ? null : widget.member?.photoFile,
+                    child: Stack(
+                      children: [
+                        MemberAvatar(
+                          Member(
+                            name: _name.text.trim().isEmpty ? '?' : _name.text,
+                            colorValue: _color ?? memberColors.first.toARGB32(),
+                            photoFile: _removePhoto ? null : widget.member?.photoFile,
+                          ),
+                          radius: 48,
+                          preview: _newPhoto,
                         ),
-                        radius: 48,
-                        preview: _newPhoto,
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          child: Icon(Icons.photo_camera_rounded, size: 18, color: Theme.of(context).colorScheme.onPrimary),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            child: Icon(
+                              Icons.photo_camera_rounded,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
                         ),
-                      ),
-                    ]),
+                      ],
+                    ),
                   ),
                 ),
               ),

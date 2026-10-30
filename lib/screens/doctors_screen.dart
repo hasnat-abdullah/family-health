@@ -16,7 +16,10 @@ class DoctorAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: radius,
       backgroundColor: scheme.tertiaryContainer,
-      child: Text(doctor.initials, style: TextStyle(color: scheme.onTertiaryContainer, fontWeight: FontWeight.w600, fontSize: radius * 0.75)),
+      child: Text(
+        doctor.initials,
+        style: TextStyle(color: scheme.onTertiaryContainer, fontWeight: FontWeight.w600, fontSize: radius * 0.75),
+      ),
     );
   }
 }
@@ -30,7 +33,11 @@ class DoctorsScreen extends StatelessWidget {
     void add() => Navigator.push(context, MaterialPageRoute(builder: (_) => const DoctorFormScreen()));
     return Scaffold(
       appBar: AppBar(title: const Text('Doctors')),
-      floatingActionButton: FloatingActionButton.extended(onPressed: add, icon: const Icon(Icons.add_rounded), label: const Text('Add doctor')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: add,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add doctor'),
+      ),
       body: DbBuilder<List<DoctorSummary>>(
         load: AppDb.instance.doctorSummaries,
         builder: (context, doctors) {
@@ -39,7 +46,11 @@ class DoctorsScreen extends StatelessWidget {
               icon: Icons.medical_services_outlined,
               title: 'No doctors yet',
               message: 'Add the doctors your family sees. Link a prescription or report to a doctor, and everything from them is kept together, for each person they treat.',
-              action: FilledButton.icon(onPressed: add, icon: const Icon(Icons.add_rounded), label: const Text('Add doctor')),
+              action: FilledButton.icon(
+                onPressed: add,
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Add doctor'),
+              ),
             );
           }
           return ContentWidth(
@@ -54,12 +65,17 @@ class DoctorsScreen extends StatelessWidget {
                     subtitle: Text(
                       [
                         if (s.doctor.details.isNotEmpty) s.doctor.details,
-                        s.recordCount == 0 ? 'No records yet' : '${s.recordCount} record${s.recordCount == 1 ? '' : 's'}',
+                        s.recordCount == 0
+                            ? 'No records yet'
+                            : '${s.recordCount} record${s.recordCount == 1 ? '' : 's'}',
                         if (s.lastVisit != null) 'last ${dateFmt.format(s.lastVisit!)}',
                       ].join(' · '),
                     ),
                     trailing: s.patients.isEmpty ? null : _Patients(s.patients),
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DoctorDetailScreen(doctorId: s.doctor.id))),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => DoctorDetailScreen(doctorId: s.doctor.id)),
+                    ),
                   ),
               ],
             ),
@@ -121,9 +137,7 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
       if (data == null) return const Scaffold();
       final d = data.doctor;
       final theme = Theme.of(context);
-      final patients = [
-        for (final id in data.reports.map((r) => r.memberId).toSet()) ?data.members[id],
-      ];
+      final patients = [for (final id in data.reports.map((r) => r.memberId).toSet()) ?data.members[id]];
       final shown = data.reports.where((r) => _memberFilter == null || r.memberId == _memberFilter).toList();
       int? year;
       return Scaffold(
@@ -139,7 +153,11 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
               tooltip: 'Delete',
               icon: const Icon(Icons.delete_outline_rounded),
               onPressed: () async {
-                final ok = await confirm(context, title: 'Delete ${d.name}?', message: 'Only the doctor\'s page is removed. Their prescriptions and reports stay with each family member.');
+                final ok = await confirm(
+                  context,
+                  title: 'Delete ${d.name}?',
+                  message: 'Only the doctor\'s page is removed. Their prescriptions and reports stay with each family member.',
+                );
                 if (!ok) return;
                 await AppDb.instance.deleteDoctor(d.id);
                 if (context.mounted) Navigator.pop(context);
@@ -159,43 +177,70 @@ class _DoctorDetailScreenState extends State<DoctorDetailScreen> {
                 title: Text(d.name, style: theme.textTheme.titleMedium),
                 subtitle: d.details.isEmpty ? null : Text(d.details),
               ),
-              if (d.phone != null) ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.phone_outlined), title: SelectableText(d.phone!)),
-              if (d.notes != null) ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notes_rounded), title: SelectableText(d.notes!)),
+              if (d.phone != null)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.phone_outlined),
+                  title: SelectableText(d.phone!),
+                ),
+              if (d.notes != null)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.notes_rounded),
+                  title: SelectableText(d.notes!),
+                ),
               if (patients.length > 1)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: Row(children: [
-                    FilterChip(label: const Text('Everyone'), selected: _memberFilter == null, onSelected: (_) => setState(() => _memberFilter = null)),
-                    for (final m in patients)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: FilterChip(
-                          avatar: MemberAvatar(m, radius: 11),
-                          label: Text(m.name),
-                          selected: _memberFilter == m.id,
-                          onSelected: (_) => setState(() => _memberFilter = _memberFilter == m.id ? null : m.id),
-                        ),
+                  child: Row(
+                    children: [
+                      FilterChip(
+                        label: const Text('Everyone'),
+                        selected: _memberFilter == null,
+                        onSelected: (_) => setState(() => _memberFilter = null),
                       ),
-                  ]),
+                      for (final m in patients)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: FilterChip(
+                            avatar: MemberAvatar(m, radius: 11),
+                            label: Text(m.name),
+                            selected: _memberFilter == m.id,
+                            onSelected: (_) => setState(() => _memberFilter = _memberFilter == m.id ? null : m.id),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               if (data.reports.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Text('Nothing linked yet. Choose this doctor when you add a prescription or report.', textAlign: TextAlign.center),
+                  child: Text(
+                    'Nothing linked yet. Choose this doctor when you add a prescription or report.',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               for (final r in shown) ...[
                 if (r.date.year != year)
-                  Builder(builder: (context) {
-                    year = r.date.year;
-                    return Padding(padding: const EdgeInsets.only(top: 20, bottom: 4), child: Text('$year', style: theme.textTheme.titleSmall));
-                  }),
+                  Builder(
+                    builder: (context) {
+                      year = r.date.year;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 20, bottom: 4),
+                        child: Text('$year', style: theme.textTheme.titleSmall),
+                      );
+                    },
+                  ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(child: Icon(docIcon(r.type))),
                   title: Text(r.title),
                   subtitle: Text([dateFmt.format(r.date), r.type.label, ?data.members[r.memberId]?.name].join(' · ')),
-                  trailing: data.members[r.memberId] == null ? null : MemberAvatar(data.members[r.memberId]!, radius: 13),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: r.id))),
+                  trailing: data.members[r.memberId] == null
+                      ? null
+                      : MemberAvatar(data.members[r.memberId]!, radius: 13),
+                  onTap: () =>
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailScreen(reportId: r.id))),
                 ),
               ],
             ],
@@ -245,7 +290,10 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
       appBar: AppBar(
         title: Text(widget.doctor == null ? 'New doctor' : 'Edit doctor'),
         actions: [
-          Padding(padding: const EdgeInsets.only(right: 12), child: FilledButton(onPressed: _save, child: const Text('Save'))),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledButton(onPressed: _save, child: const Text('Save')),
+          ),
         ],
       ),
       body: ContentWidth(
@@ -263,13 +311,34 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter a name' : null,
               ),
               gap,
-              TextFormField(controller: _specialty, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Specialty', hintText: 'e.g. Haematology')),
+              TextFormField(
+                controller: _specialty,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Specialty', hintText: 'e.g. Haematology'),
+              ),
               gap,
-              TextFormField(controller: _hospital, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Hospital / chamber')),
+              TextFormField(
+                controller: _hospital,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Hospital / chamber'),
+              ),
               gap,
-              TextFormField(controller: _phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone')),
+              TextFormField(
+                controller: _phone,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Phone'),
+              ),
               gap,
-              TextFormField(controller: _notes, minLines: 2, maxLines: 4, decoration: const InputDecoration(labelText: 'Notes', hintText: 'Chamber hours, serial number…', alignLabelWithHint: true)),
+              TextFormField(
+                controller: _notes,
+                minLines: 2,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Notes',
+                  hintText: 'Chamber hours, serial number…',
+                  alignLabelWithHint: true,
+                ),
+              ),
             ],
           ),
         ),

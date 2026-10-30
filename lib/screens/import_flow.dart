@@ -25,12 +25,30 @@ Future<void> smartImport(BuildContext context) async {
     context: context,
     showDragHandle: true,
     builder: (context) => SafeArea(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (isMobile) ListTile(leading: const Icon(Icons.photo_camera_rounded), title: const Text('Take a photo'), onTap: () => Navigator.pop(context, 'camera')),
-        if (isMobile) ListTile(leading: const Icon(Icons.photo_library_rounded), title: const Text('Choose from photos'), onTap: () => Navigator.pop(context, 'photos')),
-        ListTile(leading: const Icon(Icons.upload_file_rounded), title: const Text('Choose PDFs or images'), subtitle: const Text('Select several to work through a pile'), onTap: () => Navigator.pop(context, 'files')),
-        const SizedBox(height: 8),
-      ]),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isMobile)
+            ListTile(
+              leading: const Icon(Icons.photo_camera_rounded),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(context, 'camera'),
+            ),
+          if (isMobile)
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: const Text('Choose from photos'),
+              onTap: () => Navigator.pop(context, 'photos'),
+            ),
+          ListTile(
+            leading: const Icon(Icons.upload_file_rounded),
+            title: const Text('Choose PDFs or images'),
+            subtitle: const Text('Select several to work through a pile'),
+            onTap: () => Navigator.pop(context, 'files'),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     ),
   );
   if (source == null || !context.mounted) return;
@@ -67,11 +85,20 @@ Future<void> smartImport(BuildContext context) async {
       await FileIO.discardPlainCopies(picked);
       return;
     }
-    if (separate) batches = [for (final f in picked) [f]];
+    if (separate) {
+      batches = [
+        for (final f in picked) [f],
+      ];
+    }
   }
   for (final (i, batch) in batches.indexed) {
     if (!context.mounted) return;
-    await ingestFiles(context, member: member, picked: batch, queueLabel: batches.length > 1 ? '${i + 1} of ${batches.length}' : null);
+    await ingestFiles(
+      context,
+      member: member,
+      picked: batch,
+      queueLabel: batches.length > 1 ? '${i + 1} of ${batches.length}' : null,
+    );
   }
 }
 
@@ -83,7 +110,13 @@ Future<Member?> _askMember(BuildContext context, List<Member> family) => showDia
       for (final m in family)
         SimpleDialogOption(
           onPressed: () => Navigator.pop(context, m),
-          child: Row(children: [MemberAvatar(m, radius: 16), const SizedBox(width: 12), Expanded(child: Text(m.name))]),
+          child: Row(
+            children: [
+              MemberAvatar(m, radius: 16),
+              const SizedBox(width: 12),
+              Expanded(child: Text(m.name)),
+            ],
+          ),
         ),
     ],
   ),
@@ -101,7 +134,8 @@ Future<bool> _skipDuplicate(BuildContext context, List<Picked> picked) async {
     final add = await confirm(
       context,
       title: 'Already saved',
-      message: '${f.name} is already in "${existing.title}" (${dateFmt.format(existing.date)}) for ${who?.name ?? 'a family member'}.',
+      message:
+          '${f.name} is already in "${existing.title}" (${dateFmt.format(existing.date)}) for ${who?.name ?? 'a family member'}.',
       action: 'Add again',
     );
     return !add;
@@ -110,7 +144,13 @@ Future<bool> _skipDuplicate(BuildContext context, List<Picked> picked) async {
 }
 
 /// Copies the originals into the archive, reads them, and opens the review screen.
-Future<void> ingestFiles(BuildContext context, {Member? member, required List<Picked> picked, DocType? type, String? queueLabel}) async {
+Future<void> ingestFiles(
+  BuildContext context, {
+  Member? member,
+  required List<Picked> picked,
+  DocType? type,
+  String? queueLabel,
+}) async {
   if (await _skipDuplicate(context, picked)) {
     await FileIO.discardPlainCopies(picked);
     return;

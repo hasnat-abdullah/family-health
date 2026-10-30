@@ -103,8 +103,7 @@ class BackupService {
     }
 
     final rows = {
-      for (final t in _tables)
-        t: [for (final r in (data[t] as List? ?? const [])) Map<String, Object?>.from(r as Map)],
+      for (final t in _tables) t: [for (final r in (data[t] as List? ?? const [])) Map<String, Object?>.from(r as Map)],
     };
     final counts = await AppDb.instance.mergeRows(rows);
     return ImportSummary(counts['members']!, counts['reports']!, counts['results']!, counts['medications']!, files);

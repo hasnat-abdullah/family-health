@@ -4,8 +4,16 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
   - package-ecosystem: pub
-    directory: /
+    directories:
+      - /
+      - /packages/report_ocr
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

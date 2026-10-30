@@ -151,10 +151,15 @@ class ValueWithFlag extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text.rich(
-          TextSpan(children: [
-            TextSpan(text: formatValue(result), style: valueStyle(context, result.flag, base: base ?? theme.textTheme.titleMedium)),
-            if (result.unit != null) TextSpan(text: ' ${result.unit}', style: theme.textTheme.bodySmall),
-          ]),
+          TextSpan(
+            children: [
+              TextSpan(
+                text: formatValue(result),
+                style: valueStyle(context, result.flag, base: base ?? theme.textTheme.titleMedium),
+              ),
+              if (result.unit != null) TextSpan(text: ' ${result.unit}', style: theme.textTheme.bodySmall),
+            ],
+          ),
         ),
         FlagBadge(result.flag),
       ],
@@ -184,7 +189,11 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 16),
               Text(title, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
               const SizedBox(height: 8),
-              Text(message, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
+              Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
               if (action != null) ...[const SizedBox(height: 24), action!],
             ],
           ),
@@ -203,14 +212,22 @@ class ContentWidth extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Align(
     alignment: Alignment.topCenter,
-    child: ConstrainedBox(constraints: BoxConstraints(maxWidth: maxWidth), child: child),
+    child: ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: child,
+    ),
   );
 }
 
 void showMessage(BuildContext context, String text) =>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-Future<bool> confirm(BuildContext context, {required String title, required String message, String action = 'Delete'}) async =>
+Future<bool> confirm(
+  BuildContext context, {
+  required String title,
+  required String message,
+  String action = 'Delete',
+}) async =>
     await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -227,8 +244,9 @@ Future<bool> confirm(BuildContext context, {required String title, required Stri
 bool isAbnormal(ResultFlag f) => f == ResultFlag.low || f == ResultFlag.high;
 
 /// Background tint for rows holding an out-of-range value (paired with [FlagBadge]).
-Color? abnormalTint(BuildContext context, ResultFlag f) =>
-    isAbnormal(f) ? StatusColors.critical.withValues(alpha: Theme.of(context).brightness == Brightness.light ? 0.08 : 0.16) : null;
+Color? abnormalTint(BuildContext context, ResultFlag f) => isAbnormal(f)
+    ? StatusColors.critical.withValues(alpha: Theme.of(context).brightness == Brightness.light ? 0.08 : 0.16)
+    : null;
 
 /// Value text: bold, and in the status colour when out of range.
 TextStyle? valueStyle(BuildContext context, ResultFlag f, {TextStyle? base}) {
@@ -239,7 +257,14 @@ TextStyle? valueStyle(BuildContext context, ResultFlag f, {TextStyle? base}) {
 
 /// Lists out-of-range latest results. [onTap] opens the trend for a result.
 class AttentionCard extends StatelessWidget {
-  const AttentionCard({super.key, required this.items, required this.onTap, this.title = 'Needs attention', this.leading, this.onHeaderTap});
+  const AttentionCard({
+    super.key,
+    required this.items,
+    required this.onTap,
+    this.title = 'Needs attention',
+    this.leading,
+    this.onHeaderTap,
+  });
   final List<TestResult> items;
   final void Function(TestResult) onTap;
   final VoidCallback? onHeaderTap;
@@ -253,33 +278,41 @@ class AttentionCard extends StatelessWidget {
       color: abnormalTint(context, ResultFlag.high),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          InkWell(
-            onTap: onHeaderTap,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-              child: Row(children: [
-                leading ?? const Icon(Icons.error_outline_rounded, color: StatusColors.critical, size: 20),
-                const SizedBox(width: 8),
-                Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
-                Text('${items.length} out of range', style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                if (onHeaderTap != null) const Icon(Icons.chevron_right_rounded, size: 20),
-              ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: onHeaderTap,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 48),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: Row(
+                  children: [
+                    leading ?? const Icon(Icons.error_outline_rounded, color: StatusColors.critical, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(title, style: theme.textTheme.titleSmall)),
+                    Text(
+                      '${items.length} out of range',
+                      style: theme.textTheme.labelMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
+                    if (onHeaderTap != null) const Icon(Icons.chevron_right_rounded, size: 20),
+                  ],
+                ),
+              ),
             ),
-          ),
-          for (final r in items)
-            ResultTile(
-              result: r,
-              title: r.testName,
-              subtitle: [
-                dateFmt.format(r.date),
-                if (formatRange(r.refLow, r.refHigh).isNotEmpty) 'range ${formatRange(r.refLow, r.refHigh)}',
-              ].join(' · '),
-              base: theme.textTheme.bodyLarge,
-              onTap: () => onTap(r),
-            ),
-        ]),
+            for (final r in items)
+              ResultTile(
+                result: r,
+                title: r.testName,
+                subtitle: [
+                  dateFmt.format(r.date),
+                  if (formatRange(r.refLow, r.refHigh).isNotEmpty) 'range ${formatRange(r.refLow, r.refHigh)}',
+                ].join(' · '),
+                base: theme.textTheme.bodyLarge,
+                onTap: () => onTap(r),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -320,17 +353,26 @@ class ResultTile extends StatelessWidget {
             constraints: const BoxConstraints(minHeight: 56),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(children: [
-                Expanded(
-                  child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(title, style: theme.textTheme.bodyLarge),
-                    if (subtitle != null)
-                      Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  ]),
-                ),
-                const SizedBox(width: 12),
-                ValueWithFlag(result, base: base),
-              ]),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: theme.textTheme.bodyLarge),
+                        if (subtitle != null)
+                          Text(
+                            subtitle!,
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ValueWithFlag(result, base: base),
+                ],
+              ),
             ),
           ),
         ),

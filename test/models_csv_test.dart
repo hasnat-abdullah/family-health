@@ -23,15 +23,16 @@ void main() {
 
     test('slots stop at the end of the course', () {
       final slots = course.slotsBetween(DateTime(2026, 3, 4, 9), DateTime(2026, 3, 20)).toList();
-      expect(slots, [
-        DateTime(2026, 3, 4, 20),
-        DateTime(2026, 3, 5, 8),
-        DateTime(2026, 3, 5, 20),
-      ]);
+      expect(slots, [DateTime(2026, 3, 4, 20), DateTime(2026, 3, 5, 8), DateTime(2026, 3, 5, 20)]);
     });
 
     test('ongoing medicine has no end', () {
-      final thyroid = Medication(memberId: 'm', name: 'Levothyroxine', times: [7 * 60], startDate: DateTime(2025, 1, 1));
+      final thyroid = Medication(
+        memberId: 'm',
+        name: 'Levothyroxine',
+        times: [7 * 60],
+        startDate: DateTime(2025, 1, 1),
+      );
       expect(thyroid.endDate, isNull);
       expect(thyroid.slotsBetween(DateTime(2026, 1, 1), DateTime(2026, 1, 10, 23)).length, 10);
     });

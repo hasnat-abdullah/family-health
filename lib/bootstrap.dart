@@ -19,13 +19,18 @@ class StorageConfig {
 
 /// Opens the key, encrypted file store and encrypted database, in that order.
 /// Throws [VaultLockedException] if the key is unavailable but data exists.
-Future<void> bootstrap({StorageConfig config = StorageConfig.real, KeyStore? keyStore, bool seedDemoData = false}) async {
+Future<void> bootstrap({
+  StorageConfig config = StorageConfig.real,
+  KeyStore? keyStore,
+  bool seedDemoData = false,
+}) async {
   pdfrxFlutterInitialize();
   final store = keyStore ?? SecureKeyStore();
   // Plaintext data from before encryption existed is migrated below; only
   // data already encrypted makes a missing key fatal.
   final dbPath = await AppDb.pathFor(config.dbName);
-  final hasEncryptedData = (await AppDb.exists(fileName: config.dbName) && !await AppDb.isPlaintext(dbPath)) ||
+  final hasEncryptedData =
+      (await AppDb.exists(fileName: config.dbName) && !await AppDb.isPlaintext(dbPath)) ||
       await FileStore.hasEncryptedFiles(folder: config.filesFolder);
   final vault = await Vault.open(keyStore: store, hasExistingData: hasEncryptedData);
   await FileStore.purgeTempPlainFiles();

@@ -96,7 +96,14 @@ void main() {
     final member = Member(name: 'Nadia', colorValue: 1);
     await db.saveMember(member);
     final soon = DateTime.now().add(const Duration(minutes: 2));
-    final med = Medication(memberId: member.id, name: 'Fire test', dose: '1 tablet', times: [soon.hour * 60 + soon.minute], startDate: DateTime(soon.year, soon.month, soon.day), days: 1);
+    final med = Medication(
+      memberId: member.id,
+      name: 'Fire test',
+      dose: '1 tablet',
+      times: [soon.hour * 60 + soon.minute],
+      startDate: DateTime(soon.year, soon.month, soon.day),
+      days: 1,
+    );
     await db.saveMedication(med);
     await Reminders.reschedule();
     expect(await Reminders.pendingCount(), 1);

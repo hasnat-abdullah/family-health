@@ -18,4 +18,6 @@ for s in "${suites[@]}"; do
   flutter test "integration_test/${s}_test.dart" -d "$device" > "$log" 2>&1
   code=$?
   echo "$label $s: exit $code | $(grep -E 'All tests passed|Some tests failed' "$log" | tail -1) $(grep -E '^UI/UX: ' "$log" | cut -d';' -f1)"
+  [ "$code" -eq 0 ] || failed=1
 done
+exit ${failed:-0}

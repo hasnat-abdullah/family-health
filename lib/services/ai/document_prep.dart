@@ -25,7 +25,12 @@ class DocumentPrep {
   static const _maxSide = 1800;
 
   /// [lines] skips the on-device read when the caller already has it.
-  static Future<PreparedDocument> prepare(List<Attachment> attachments, {required bool withImages, List<String>? lines, AiCancelToken? cancel}) async {
+  static Future<PreparedDocument> prepare(
+    List<Attachment> attachments, {
+    required bool withImages,
+    List<String>? lines,
+    AiCancelToken? cancel,
+  }) async {
     final images = <AiImage>[];
     final text = <String>[...?lines];
     var skipped = 0;
@@ -64,7 +69,11 @@ class DocumentPrep {
         if (images.length >= _maxPages) return doc.pages.length - doc.pages.indexOf(page);
         final longest = page.width > page.height ? page.width : page.height;
         final scale = _maxSide / longest;
-        final rendered = await page.render(fullWidth: page.width * scale, fullHeight: page.height * scale, backgroundColor: 0xffffffff);
+        final rendered = await page.render(
+          fullWidth: page.width * scale,
+          fullHeight: page.height * scale,
+          backgroundColor: 0xffffffff,
+        );
         if (rendered == null) throw StateError('Could not render page ${page.pageNumber}');
         try {
           final image = await rendered.createImage();

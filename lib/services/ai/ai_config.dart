@@ -8,9 +8,22 @@ import '../../security/vault.dart';
 /// the device until the user chooses a provider and agrees to it.
 enum AiProvider {
   off('off', 'Off (on-device only)', '', [], ''),
-  gemini('gemini', 'Google Gemini', 'https://generativelanguage.googleapis.com/v1beta', ['gemini-3.8-flash', 'gemini-4-argon', 'gemini-3.5-flash-lite'], 'https://aistudio.google.com/apikey'),
-  openai('openai', 'OpenAI', 'https://api.openai.com/v1', ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6.1-terra', 'gpt-6-luna'], 'https://platform.openai.com/api-keys'),
-  anthropic('anthropic', 'Anthropic Claude', 'https://api.anthropic.com/v1', ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], 'https://platform.claude.com/settings/keys'),
+  gemini('gemini', 'Google Gemini', 'https://generativelanguage.googleapis.com/v1beta', [
+    'gemini-3.8-flash',
+    'gemini-4-argon',
+    'gemini-3.5-flash-lite',
+  ], 'https://aistudio.google.com/apikey'),
+  openai('openai', 'OpenAI', 'https://api.openai.com/v1', [
+    'gpt-6.1-sol',
+    'gpt-6-astra',
+    'gpt-6.1-terra',
+    'gpt-6-luna',
+  ], 'https://platform.openai.com/api-keys'),
+  anthropic('anthropic', 'Anthropic Claude', 'https://api.anthropic.com/v1', [
+    'claude-opus-5-5',
+    'claude-sonnet-5-5',
+    'claude-haiku-5-5',
+  ], 'https://platform.claude.com/settings/keys'),
   local('local', 'Local model', 'http://localhost:11434/v1', [], '');
 
   const AiProvider(this.id, this.label, this.defaultBaseUrl, this.models, this.keyUrl);
@@ -35,8 +48,11 @@ class AiProviderSettings {
 
   Map<String, Object?> toJson() => {'apiKey': apiKey, 'model': model, 'baseUrl': baseUrl};
 
-  factory AiProviderSettings.fromJson(Map<String, Object?> m) =>
-      AiProviderSettings(apiKey: m['apiKey'] as String? ?? '', model: m['model'] as String? ?? '', baseUrl: m['baseUrl'] as String? ?? '');
+  factory AiProviderSettings.fromJson(Map<String, Object?> m) => AiProviderSettings(
+    apiKey: m['apiKey'] as String? ?? '',
+    model: m['model'] as String? ?? '',
+    baseUrl: m['baseUrl'] as String? ?? '',
+  );
 }
 
 /// True for addresses that stay on this device or the home network. A key and
@@ -81,7 +97,10 @@ class AiSettings {
       AiProvider.fromId(m['provider'] as String?),
       {
         for (final p in AiProvider.values)
-          if (p != AiProvider.off) p: saved[p.id] == null ? AiProviderSettings() : AiProviderSettings.fromJson(saved[p.id] as Map<String, Object?>),
+          if (p != AiProvider.off)
+            p: saved[p.id] == null
+                ? AiProviderSettings()
+                : AiProviderSettings.fromJson(saved[p.id] as Map<String, Object?>),
       },
       m['sendImages'] as bool? ?? true,
       {for (final id in (m['consented'] as List? ?? const [])) AiProvider.fromId(id as String)}..remove(AiProvider.off),

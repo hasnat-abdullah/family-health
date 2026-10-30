@@ -115,7 +115,9 @@ void main() {
 
         await check('01_home');
 
-        final card = find.byWidgetPredicate((w) => w.key is ValueKey && '${(w.key! as ValueKey).value}'.startsWith('member-card-'));
+        final card = find.byWidgetPredicate(
+          (w) => w.key is ValueKey && '${(w.key! as ValueKey).value}'.startsWith('member-card-'),
+        );
         final nadia = find.descendant(of: card, matching: find.text('Nadia Rahman'));
         await tester.scrollUntilVisible(nadia, 200, scrollable: find.byType(Scrollable).first);
         await tester.drag(find.byType(Scrollable).first, const Offset(0, -200)); // clear of the FAB
@@ -168,7 +170,11 @@ void main() {
         await check('11_password_dialog');
         await tester.tap(find.text('Cancel').hitTestable());
         await settle(tester);
-        await tester.scrollUntilVisible(find.text('AI document reading'), 150, scrollable: find.byType(Scrollable).first);
+        await tester.scrollUntilVisible(
+          find.text('AI document reading'),
+          150,
+          scrollable: find.byType(Scrollable).first,
+        );
         await settle(tester, rounds: 3);
         await tester.tap(find.text('AI document reading').hitTestable());
         await settle(tester);

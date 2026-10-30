@@ -7,7 +7,14 @@ import 'package:family_health/services/ai/extraction.dart';
 import 'package:family_health/services/ai/extraction_prompt.dart';
 import 'package:family_health/services/medicine_schedule.dart';
 
-Map<String, Object?> row(String name, String? value, {String? unit, String? range, String? flag, bool legible = true}) => {
+Map<String, Object?> row(
+  String name,
+  String? value, {
+  String? unit,
+  String? range,
+  String? flag,
+  bool legible = true,
+}) => {
   'test_name_printed': name,
   'value_printed': value,
   'unit_printed': unit,
@@ -40,23 +47,25 @@ AiDocument doc({
   List<Map<String, Object?>> rows = const [],
   List<Map<String, Object?>> meds = const [],
   int? followDays,
-}) => AiDocument.parse(jsonEncode({
-  'is_medical_document': medical,
-  'document_type': type,
-  'title': 'CBC',
-  'report_date_printed': date,
-  'report_date': iso,
-  'patient': {'name_printed': patient, 'age_printed': age, 'sex_printed': sex},
-  'other_patients': others,
-  'facility': null,
-  'doctor': {'name_printed': doctor, 'specialty_printed': null, 'hospital_printed': null, 'phone_printed': null},
-  'lab_results': rows,
-  'medicines': meds,
-  'notes_printed': null,
-  'follow_up_printed': null,
-  'follow_up_date': null,
-  'follow_up_days': followDays,
-}));
+}) => AiDocument.parse(
+  jsonEncode({
+    'is_medical_document': medical,
+    'document_type': type,
+    'title': 'CBC',
+    'report_date_printed': date,
+    'report_date': iso,
+    'patient': {'name_printed': patient, 'age_printed': age, 'sex_printed': sex},
+    'other_patients': others,
+    'facility': null,
+    'doctor': {'name_printed': doctor, 'specialty_printed': null, 'hospital_printed': null, 'phone_printed': null},
+    'lab_results': rows,
+    'medicines': meds,
+    'notes_printed': null,
+    'follow_up_printed': null,
+    'follow_up_date': null,
+    'follow_up_days': followDays,
+  }),
+);
 
 const cbcLines = [
   'Popular Diagnostic Centre',
@@ -69,21 +78,35 @@ const cbcLines = [
 ];
 
 void main() {
-  final nadia = Member(name: 'Nadia Rahman', relation: 'Spouse', sex: 'F', colorValue: 0, birthDate: DateTime(1993, 5, 2));
+  final nadia = Member(
+    name: 'Nadia Rahman',
+    relation: 'Spouse',
+    sex: 'F',
+    colorValue: 0,
+    birthDate: DateTime(1993, 5, 2),
+  );
   final imran = Member(name: 'Imran', relation: 'Self', sex: 'M', colorValue: 0);
   final family = [nadia, imran];
   final today = DateTime(2026, 10, 30);
-  ExtractionChecker checker({Member? member, Map<String, double> history = const {}, List<Doctor> doctors = const []}) =>
-      ExtractionChecker(member: member ?? nadia, history: history, doctors: doctors, today: today);
+  ExtractionChecker checker({
+    Member? member,
+    Map<String, double> history = const {},
+    List<Doctor> doctors = const [],
+  }) => ExtractionChecker(member: member ?? nadia, history: history, doctors: doctors, today: today);
   DraftResult find(ExtractionDraft d, String key) => d.results.firstWhere((r) => r.parsed.testKey == key);
 
   group('values are interpreted by code, not the model', () {
     test('printed strings become the same numbers as on-device reading', () {
-      final d = checker().check(doc(rows: [
-        row('Haemoglobin', '11.2', unit: 'g/dL', range: '12.0 - 15.5', flag: 'L'),
-        row('WBC', '7,500', unit: '/cumm', range: '4,000 - 11,000'),
-        row('Platelet Count', '2,50,000', unit: '/cumm', range: '1,50,000 - 4,50,000'),
-      ]), cbcLines);
+      final d = checker().check(
+        doc(
+          rows: [
+            row('Haemoglobin', '11.2', unit: 'g/dL', range: '12.0 - 15.5', flag: 'L'),
+            row('WBC', '7,500', unit: '/cumm', range: '4,000 - 11,000'),
+            row('Platelet Count', '2,50,000', unit: '/cumm', range: '1,50,000 - 4,50,000'),
+          ],
+        ),
+        cbcLines,
+      );
       final hb = find(d, 'hemoglobin');
       expect((hb.parsed.value, hb.parsed.refLow, hb.parsed.refHigh, hb.check), (11.2, 12, 15.5, Check.confirmed));
       expect(find(d, 'wbc').parsed.value, 7.5);
@@ -94,7 +117,15 @@ void main() {
     });
 
     test('Bengali digits and text results', () {
-      final d = checker().check(doc(rows: [row('Hemoglobin', '১১.২', unit: 'g/dL'), row('Urine Sugar', 'Negative')]), cbcLines);
+      final d = checker().check(
+        doc(
+          rows: [
+            row('Hemoglobin', '১১.২', unit: 'g/dL'),
+            row('Urine Sugar', 'Negative'),
+          ],
+        ),
+        cbcLines,
+      );
       expect(find(d, 'hemoglobin').parsed.value, 11.2);
       final urine = d.results.firstWhere((r) => r.parsed.testName.contains('Urine'));
       expect((urine.parsed.value, urine.parsed.valueText), (null, 'Negative'));
@@ -134,7 +165,15 @@ void main() {
     });
 
     test('swapped values between rows are caught', () {
-      final d = checker().check(doc(rows: [row('Haemoglobin', '7,500', unit: 'g/dL'), row('WBC', '11.2', unit: '/cumm')]), cbcLines);
+      final d = checker().check(
+        doc(
+          rows: [
+            row('Haemoglobin', '7,500', unit: 'g/dL'),
+            row('WBC', '11.2', unit: '/cumm'),
+          ],
+        ),
+        cbcLines,
+      );
       expect(find(d, 'hemoglobin').check, Check.conflict);
       expect(find(d, 'wbc').check, Check.conflict);
     });
@@ -145,7 +184,12 @@ void main() {
     });
 
     test('a printed flag that contradicts the value is caught', () {
-      final d = checker().check(doc(rows: [row('Haemoglobin', '11.2', range: '12.0 - 15.5', flag: 'H')]), cbcLines);
+      final d = checker().check(
+        doc(
+          rows: [row('Haemoglobin', '11.2', range: '12.0 - 15.5', flag: 'H')],
+        ),
+        cbcLines,
+      );
       expect(find(d, 'hemoglobin').check.needsReview, isTrue);
       expect(find(d, 'hemoglobin').note, contains('marks this high'));
     });
@@ -157,7 +201,13 @@ void main() {
     });
 
     test('with no local text nothing is claimed as confirmed', () {
-      final d = checker().check(doc(rows: [row('Hemoglobin', '11.2')], meds: [med('Napa', schedule: '1+0+1', duration: '5 days')]), const []);
+      final d = checker().check(
+        doc(
+          rows: [row('Hemoglobin', '11.2')],
+          meds: [med('Napa', schedule: '1+0+1', duration: '5 days')],
+        ),
+        const [],
+      );
       expect(find(d, 'hemoglobin').check, Check.uncheckable);
       expect(d.medicines.single.check, Check.uncheckable);
       expect(d.toReview, 2);
@@ -183,7 +233,15 @@ void main() {
 
   group('mixing', () {
     test('percent and absolute of one test never share a trend', () {
-      final d = checker().check(doc(rows: [row('Neutrophils', '62', unit: '%'), row('Neutrophils Absolute', '4650', unit: '/cumm')]), const []);
+      final d = checker().check(
+        doc(
+          rows: [
+            row('Neutrophils', '62', unit: '%'),
+            row('Neutrophils Absolute', '4650', unit: '/cumm'),
+          ],
+        ),
+        const [],
+      );
       expect(d.results.map((r) => r.parsed.testKey).toSet(), hasLength(2));
     });
 
@@ -211,7 +269,10 @@ void main() {
     });
 
     test('wrong sex, wrong age and second patients warn', () {
-      final d = checker().check(doc(patient: 'A Rahman', sex: 'Male', age: '61 Y', others: ['Karim Uddin'], date: '12/03/2026'), cbcLines);
+      final d = checker().check(
+        doc(patient: 'A Rahman', sex: 'Male', age: '61 Y', others: ['Karim Uddin'], date: '12/03/2026'),
+        cbcLines,
+      );
       final all = d.issues.join(' ');
       expect(all, contains('differs from Nadia'));
       expect(all, contains('age 61'));
@@ -261,11 +322,14 @@ void main() {
   group('prescriptions', () {
     test('medicines get rule-based schedules', () {
       final d = checker().check(
-        doc(type: 'prescription', meds: [
-          med('Napa', strength: '500 mg', schedule: '১+০+১', duration: '৭ দিন'),
-          med('Thyrox', schedule: '1+0+0', duration: 'চলবে'),
-          med('Sergel', schedule: 'when needed'),
-        ]),
+        doc(
+          type: 'prescription',
+          meds: [
+            med('Napa', strength: '500 mg', schedule: '১+০+১', duration: '৭ দিন'),
+            med('Thyrox', schedule: '1+0+0', duration: 'চলবে'),
+            med('Sergel', schedule: 'when needed'),
+          ],
+        ),
         const ['Rx', 'Napa 500 mg 1+0+1', 'Thyrox 50 1+0+0', 'Sergel 20', 'x'],
       );
       final m = d.medicines;
@@ -278,7 +342,12 @@ void main() {
     });
 
     test('an illegible or invented medicine is flagged', () {
-      final d = checker().check(doc(meds: [med('Azithro', legible: false), med('Warfarin')]), const ['Napa 500', 'a', 'b', 'c']);
+      final d = checker().check(doc(meds: [med('Azithro', legible: false), med('Warfarin')]), const [
+        'Napa 500',
+        'a',
+        'b',
+        'c',
+      ]);
       expect(d.medicines[0].check, Check.unreadable);
       expect(d.medicines[1].check, Check.notFound);
     });

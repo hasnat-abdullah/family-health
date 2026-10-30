@@ -8,7 +8,22 @@ import 'package:http/http.dart' as http;
 
 import 'ai_config.dart';
 
-enum AiErrorKind { auth, quota, rateLimited, overloaded, network, timeout, modelNotFound, tooLarge, badRequest, refused, truncated, invalidResponse, unsupported, cancelled }
+enum AiErrorKind {
+  auth,
+  quota,
+  rateLimited,
+  overloaded,
+  network,
+  timeout,
+  modelNotFound,
+  tooLarge,
+  badRequest,
+  refused,
+  truncated,
+  invalidResponse,
+  unsupported,
+  cancelled,
+}
 
 /// A failed AI call, with a message fit to show. The on-device reading and the
 /// original file are never affected by one of these.
@@ -72,7 +87,13 @@ class AiImage {
 }
 
 class AiRequest {
-  const AiRequest({required this.system, required this.prompt, this.images = const [], required this.schema, this.maxTokens = 16000});
+  const AiRequest({
+    required this.system,
+    required this.prompt,
+    this.images = const [],
+    required this.schema,
+    this.maxTokens = 16000,
+  });
   final String system;
   final String prompt;
   final List<AiImage> images;
@@ -82,9 +103,13 @@ class AiRequest {
 
 /// Sends JSON with timeouts and retries, and turns every failure into an [AiException].
 class AiTransport {
-  AiTransport({http.Client Function()? clientFactory, Future<void> Function(Duration)? sleep, this.maxAttempts = 3, this.timeout = const Duration(minutes: 4)})
-    : _clientFactory = clientFactory ?? http.Client.new,
-      _sleep = sleep ?? Future<void>.delayed;
+  AiTransport({
+    http.Client Function()? clientFactory,
+    Future<void> Function(Duration)? sleep,
+    this.maxAttempts = 3,
+    this.timeout = const Duration(minutes: 4),
+  }) : _clientFactory = clientFactory ?? http.Client.new,
+       _sleep = sleep ?? Future<void>.delayed;
 
   final http.Client Function() _clientFactory;
   final Future<void> Function(Duration) _sleep;
@@ -104,16 +129,27 @@ class AiTransport {
     return out.length > 240 ? '${out.substring(0, 240)}…' : out;
   }
 
-  Future<Map<String, Object?>> postJson(Uri url, Map<String, String> headers, Map<String, Object?> body, {AiCancelToken? cancel, Set<String> secrets = const {}}) async {
+  Future<Map<String, Object?>> postJson(
+    Uri url,
+    Map<String, String> headers,
+    Map<String, Object?> body, {
+    AiCancelToken? cancel,
+    Set<String> secrets = const {},
+  }) async {
     final payload = jsonEncode(body);
     for (var attempt = 1; ; attempt++) {
       try {
-        return await _once((client) => client.post(url, headers: {'content-type': 'application/json', ...headers}, body: payload), cancel, secrets);
+        return await _once(
+          (client) => client.post(url, headers: {'content-type': 'application/json', ...headers}, body: payload),
+          cancel,
+          secrets,
+        );
       } on AiException catch (e) {
         final transient = const {AiErrorKind.rateLimited, AiErrorKind.overloaded, AiErrorKind.network}.contains(e.kind);
         if (!transient || attempt >= maxAttempts) rethrow;
         // Exponential backoff with jitter unless the server said how long to wait.
-        final wait = e.retryAfter ?? Duration(milliseconds: (1000 * pow(2, attempt - 1)).toInt() + _random.nextInt(500));
+        final wait =
+            e.retryAfter ?? Duration(milliseconds: (1000 * pow(2, attempt - 1)).toInt() + _random.nextInt(500));
         if (wait > maxWait) rethrow;
         await Future.any([_sleep(wait), if (cancel != null) cancel.whenCancelled]);
         cancel?.throwIfCancelled();
@@ -121,10 +157,18 @@ class AiTransport {
     }
   }
 
-  Future<Map<String, Object?>> getJson(Uri url, Map<String, String> headers, {AiCancelToken? cancel, Set<String> secrets = const {}}) =>
-      _once((client) => client.get(url, headers: headers), cancel, secrets);
+  Future<Map<String, Object?>> getJson(
+    Uri url,
+    Map<String, String> headers, {
+    AiCancelToken? cancel,
+    Set<String> secrets = const {},
+  }) => _once((client) => client.get(url, headers: headers), cancel, secrets);
 
-  Future<Map<String, Object?>> _once(Future<http.Response> Function(http.Client) send, AiCancelToken? cancel, Set<String> secrets) async {
+  Future<Map<String, Object?>> _once(
+    Future<http.Response> Function(http.Client) send,
+    AiCancelToken? cancel,
+    Set<String> secrets,
+  ) async {
     cancel?.throwIfCancelled();
     final client = _clientFactory();
     cancel?._active = client;
@@ -137,10 +181,17 @@ class AiTransport {
         } on FormatException {
           throw const AiException(AiErrorKind.invalidResponse, detail: 'The server did not return JSON.');
         }
-        if (decoded is! Map<String, Object?>) throw const AiException(AiErrorKind.invalidResponse, detail: 'Unexpected reply shape.');
+        if (decoded is! Map<String, Object?>) {
+          throw const AiException(AiErrorKind.invalidResponse, detail: 'Unexpected reply shape.');
+        }
         return decoded;
       }
-      throw classify(response.statusCode, utf8.decode(response.bodyBytes, allowMalformed: true), response.headers['retry-after'], secrets);
+      throw classify(
+        response.statusCode,
+        utf8.decode(response.bodyBytes, allowMalformed: true),
+        response.headers['retry-after'],
+        secrets,
+      );
     } on TimeoutException {
       throw const AiException(AiErrorKind.timeout);
     } on IOException catch (e) {
@@ -176,11 +227,16 @@ class AiTransport {
     if (status == 401 || status == 403 || lower.contains('api_key_invalid') || lower.contains('api key not valid')) {
       return AiException(AiErrorKind.auth, detail: detail);
     }
-    if (status == 402 || lower.contains('insufficient_quota') || lower.contains('billing') || lower.contains('credit balance')) {
+    if (status == 402 ||
+        lower.contains('insufficient_quota') ||
+        lower.contains('billing') ||
+        lower.contains('credit balance')) {
       return AiException(AiErrorKind.quota, detail: detail);
     }
     if (status == 404) return AiException(AiErrorKind.modelNotFound, detail: detail);
-    if (status == 413 || (status == 400 && RegExp(r'too large|too long|exceeds the maximum|maximum context|context length').hasMatch(lower))) {
+    if (status == 413 ||
+        (status == 400 &&
+            RegExp(r'too large|too long|exceeds the maximum|maximum context|context length').hasMatch(lower))) {
       return AiException(AiErrorKind.tooLarge, detail: detail);
     }
     if (status == 408 || status == 429) return AiException(AiErrorKind.rateLimited, detail: detail, retryAfter: wait);
@@ -216,7 +272,13 @@ abstract class AiBackend {
       AiProvider.gemini => GeminiBackend(apiKey: key, model: model, baseUrl: base, transport: transport),
       AiProvider.anthropic => AnthropicBackend(apiKey: key, model: model, baseUrl: base, transport: transport),
       AiProvider.openai => OpenAiBackend(apiKey: key, model: model, baseUrl: base, transport: transport),
-      AiProvider.local => OpenAiBackend(apiKey: key, model: model, baseUrl: base, local: true, transport: transport ?? AiTransport(timeout: const Duration(minutes: 10))),
+      AiProvider.local => OpenAiBackend(
+        apiKey: key,
+        model: model,
+        baseUrl: base,
+        local: true,
+        transport: transport ?? AiTransport(timeout: const Duration(minutes: 10)),
+      ),
       AiProvider.off => throw StateError('AI reading is off'),
     };
   }
@@ -225,7 +287,8 @@ abstract class AiBackend {
 /// Claude Messages API. Structured outputs guarantee the JSON shape; sampling
 /// parameters and forced tool choice are rejected by current models, so neither is sent.
 class AnthropicBackend implements AiBackend {
-  AnthropicBackend({required this.apiKey, required this.model, required this.baseUrl, AiTransport? transport}) : _http = transport ?? AiTransport();
+  AnthropicBackend({required this.apiKey, required this.model, required this.baseUrl, AiTransport? transport})
+    : _http = transport ?? AiTransport();
   final String apiKey;
   final String model;
   final String baseUrl;
@@ -270,10 +333,20 @@ class AnthropicBackend implements AiBackend {
     final url = Uri.parse('$baseUrl/messages');
     Map<String, Object?> reply;
     try {
-      reply = await _http.postJson(url, _headers(fallback: _hasFallback), body(_hasFallback), cancel: cancel, secrets: {apiKey});
+      reply = await _http.postJson(
+        url,
+        _headers(fallback: _hasFallback),
+        body(_hasFallback),
+        cancel: cancel,
+        secrets: {apiKey},
+      );
     } on AiException catch (e) {
       // Not every organisation has the beta; reading must still work without it.
-      if (!_hasFallback || e.kind != AiErrorKind.badRequest || !(e.detail ?? '').contains(RegExp('anthropic-beta|fallbacks'))) rethrow;
+      if (!_hasFallback ||
+          e.kind != AiErrorKind.badRequest ||
+          !(e.detail ?? '').contains(RegExp('anthropic-beta|fallbacks'))) {
+        rethrow;
+      }
       reply = await _http.postJson(url, _headers(fallback: false), body(false), cancel: cancel, secrets: {apiKey});
     }
     switch (reply['stop_reason']) {
@@ -297,7 +370,13 @@ class AnthropicBackend implements AiBackend {
 /// OpenAI Chat Completions, which local servers (Ollama, LM Studio, llama.cpp,
 /// vLLM) also speak.
 class OpenAiBackend implements AiBackend {
-  OpenAiBackend({required this.apiKey, required this.model, required this.baseUrl, this.local = false, AiTransport? transport}) : _http = transport ?? AiTransport();
+  OpenAiBackend({
+    required this.apiKey,
+    required this.model,
+    required this.baseUrl,
+    this.local = false,
+    AiTransport? transport,
+  }) : _http = transport ?? AiTransport();
   final String apiKey;
   final String model;
   final String baseUrl;
@@ -315,7 +394,12 @@ class OpenAiBackend implements AiBackend {
       if (local) 'max_tokens': r.maxTokens else 'max_completion_tokens': r.maxTokens,
       if (local) 'temperature': 0,
       'messages': [
-        {'role': 'system', 'content': schema ? r.system : '${r.system}\n\nReply with only one JSON object matching this JSON Schema:\n${jsonEncode(r.schema)}'},
+        {
+          'role': 'system',
+          'content': schema
+              ? r.system
+              : '${r.system}\n\nReply with only one JSON object matching this JSON Schema:\n${jsonEncode(r.schema)}',
+        },
         {
           'role': 'user',
           'content': [
@@ -355,7 +439,9 @@ class OpenAiBackend implements AiBackend {
         throw const AiException(AiErrorKind.refused);
     }
     final text = message['content'];
-    if (text is! String || text.trim().isEmpty) throw const AiException(AiErrorKind.invalidResponse, detail: 'Empty reply.');
+    if (text is! String || text.trim().isEmpty) {
+      throw const AiException(AiErrorKind.invalidResponse, detail: 'Empty reply.');
+    }
     return text;
   }
 
@@ -372,7 +458,8 @@ class OpenAiBackend implements AiBackend {
 /// Gemini generateContent. The key travels in a header, so it can't end up in
 /// a URL shown in an error.
 class GeminiBackend implements AiBackend {
-  GeminiBackend({required this.apiKey, required this.model, required this.baseUrl, AiTransport? transport}) : _http = transport ?? AiTransport();
+  GeminiBackend({required this.apiKey, required this.model, required this.baseUrl, AiTransport? transport})
+    : _http = transport ?? AiTransport();
   final String apiKey;
   final String model;
   final String baseUrl;
@@ -392,7 +479,10 @@ class GeminiBackend implements AiBackend {
           out['type'] = types.firstWhere((t) => t != 'null');
           if (types.contains('null')) out['nullable'] = true;
         case 'properties':
-          out['properties'] = {for (final p in (e.value as Map<String, Object?>).entries) p.key: toGeminiSchema(p.value as Map<String, Object?>)};
+          out['properties'] = {
+            for (final p in (e.value as Map<String, Object?>).entries)
+              p.key: toGeminiSchema(p.value as Map<String, Object?>),
+          };
         case 'items':
           out['items'] = toGeminiSchema(e.value as Map<String, Object?>);
         case 'enum':

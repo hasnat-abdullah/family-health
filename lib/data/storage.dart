@@ -55,7 +55,13 @@ class FileStore {
     final ext = p.extension(originalName).toLowerCase();
     final stored = '${newId()}$ext';
     await writePlain(stored, bytes);
-    return Attachment(reportId: reportId, fileName: stored, originalName: originalName, mime: mimeFor(ext), sha256: hashOf(bytes));
+    return Attachment(
+      reportId: reportId,
+      fileName: stored,
+      originalName: originalName,
+      mime: mimeFor(ext),
+      sha256: hashOf(bytes),
+    );
   }
 
   static String hashOf(List<int> bytes) => sha256.convert(bytes).toString();

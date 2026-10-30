@@ -2,7 +2,7 @@
 
 ## How it was tested
 
-- [ ] `flutter analyze` and `flutter test` pass
+- [ ] `tool/check.sh` passes
 - [ ] Tried on: <!-- macOS / iPhone / iPad / Android -->
 
 ## Privacy

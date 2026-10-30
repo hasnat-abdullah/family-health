@@ -96,23 +96,33 @@ class StartupErrorApp extends StatelessWidget {
               padding: const EdgeInsets.all(32),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 440),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.lock_outline_rounded, size: 56, color: Theme.of(context).colorScheme.error),
-                  const SizedBox(height: 16),
-                  Text(locked ? "Can't unlock your records" : 'Something went wrong while opening your records',
-                      style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
-                  const SizedBox(height: 12),
-                  Text(
-                    locked
-                        ? 'Your records are encrypted, and the key stored in this device\'s secure keychain could not be read. '
-                              'Nothing has been deleted. Make sure the device is unlocked and try again. '
-                              'If this device was restored or reset, import your latest backup instead.'
-                        : '$error',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(onPressed: start, icon: const Icon(Icons.refresh_rounded), label: const Text('Try again')),
-                ]),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock_outline_rounded, size: 56, color: Theme.of(context).colorScheme.error),
+                    const SizedBox(height: 16),
+                    Text(
+                      locked ? "Can't unlock your records" : 'Something went wrong while opening your records',
+                      style: Theme.of(context).textTheme.titleLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      locked
+                          ? 'Your records are encrypted, and the key stored in this device\'s secure keychain could not be read. '
+                                'Nothing has been deleted. Make sure the device is unlocked and try again. '
+                                'If this device was restored or reset, import your latest backup instead.'
+                          : '$error',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    FilledButton.icon(
+                      onPressed: start,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('Try again'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

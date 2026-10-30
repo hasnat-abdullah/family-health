@@ -81,7 +81,10 @@ class TrendChart extends StatelessWidget {
                     reservedSize: 44,
                     getTitlesWidget: (v, meta) => (v == meta.min || v == meta.max)
                         ? const SizedBox.shrink()
-                        : SideTitleWidget(meta: meta, child: Text(formatNumber(v), style: axisStyle)),
+                        : SideTitleWidget(
+                            meta: meta,
+                            child: Text(formatNumber(v), style: axisStyle),
+                          ),
                   ),
                 ),
                 bottomTitles: AxisTitles(
@@ -91,7 +94,10 @@ class TrendChart extends StatelessWidget {
                     interval: _dateInterval(maxX - minX),
                     getTitlesWidget: (v, meta) => (v == meta.min || v == meta.max)
                         ? const SizedBox.shrink()
-                        : SideTitleWidget(meta: meta, child: Text(shortDateFmt.format(_date(v)), style: axisStyle)),
+                        : SideTitleWidget(
+                            meta: meta,
+                            child: Text(shortDateFmt.format(_date(v)), style: axisStyle),
+                          ),
                   ),
                 ),
               ),
@@ -104,9 +110,8 @@ class TrendChart extends StatelessWidget {
                     TouchedSpotIndicatorData(
                       FlLine(color: colors.axisText.withValues(alpha: 0.4), strokeWidth: 1, dashArray: [4, 4]),
                       FlDotData(
-                        getDotPainter: (s, _, _, _) => FlDotCirclePainter(
-                          radius: 6, color: colors.line, strokeWidth: 2, strokeColor: surface,
-                        ),
+                        getDotPainter: (s, _, _, _) =>
+                            FlDotCirclePainter(radius: 6, color: colors.line, strokeWidth: 2, strokeColor: surface),
                       ),
                     ),
                 ],
@@ -123,7 +128,11 @@ class TrendChart extends StatelessWidget {
                         children: [
                           TextSpan(
                             text: dateFmt.format(points[s.spotIndex].date),
-                            style: TextStyle(color: theme.colorScheme.onInverseSurface.withValues(alpha: 0.8), fontWeight: FontWeight.w400, fontSize: 12),
+                            style: TextStyle(
+                              color: theme.colorScheme.onInverseSurface.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),

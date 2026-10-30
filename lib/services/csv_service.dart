@@ -66,10 +66,10 @@ class CsvService {
 
     (Report, List<TestResult>) group(DateTime date, String? title, String? lab) {
       final key = '${dateToDb(date)}|${title ?? ''}';
-      return grouped.putIfAbsent(key, () => (
-        Report(memberId: member.id, title: title ?? 'Lab results', date: date, lab: lab),
-        <TestResult>[],
-      ));
+      return grouped.putIfAbsent(
+        key,
+        () => (Report(memberId: member.id, title: title ?? 'Lab results', date: date, lab: lab), <TestResult>[]),
+      );
     }
 
     String? cell(List<dynamic> row, int i) {
@@ -126,8 +126,15 @@ class CsvService {
     return CsvImport(reports, skipped);
   }
 
-  static TestResult _result(Report report, Member member, String name, String raw, String? unit,
-      double? low, double? high) {
+  static TestResult _result(
+    Report report,
+    Member member,
+    String name,
+    String raw,
+    String? unit,
+    double? low,
+    double? high,
+  ) {
     final test = findTest(name);
     final value = _double(raw);
     final factor = (test != null && value != null) ? test.factorFor(value, unit ?? '') : 1.0;

@@ -95,10 +95,15 @@ class LockGate extends StatelessWidget {
     listenable: Listenable.merge([AppLock.locked, AppLock.obscured]),
     builder: (context, _) {
       final cover = AppLock.locked.value || AppLock.obscured.value;
-      return Stack(children: [
-        ExcludeSemantics(excluding: cover, child: TickerMode(enabled: !cover, child: child)),
-        if (cover) Positioned.fill(child: _LockScreen(showButton: AppLock.locked.value)),
-      ]);
+      return Stack(
+        children: [
+          ExcludeSemantics(
+            excluding: cover,
+            child: TickerMode(enabled: !cover, child: child),
+          ),
+          if (cover) Positioned.fill(child: _LockScreen(showButton: AppLock.locked.value)),
+        ],
+      );
     },
   );
 }
@@ -149,25 +154,28 @@ class _LockScreenState extends State<_LockScreen> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.lock_rounded, size: 56, color: theme.colorScheme.primary),
-              const SizedBox(height: 16),
-              Text('Family Health is locked', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-              if (widget.showButton) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _failed ? "Couldn't verify it's you. Try again." : 'Your records are encrypted on this device.',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: _busy ? null : _unlock,
-                  icon: const Icon(Icons.fingerprint_rounded),
-                  label: const Text('Unlock'),
-                ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock_rounded, size: 56, color: theme.colorScheme.primary),
+                const SizedBox(height: 16),
+                Text('Family Health is locked', style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+                if (widget.showButton) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _failed ? "Couldn't verify it's you. Try again." : 'Your records are encrypted on this device.',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: _busy ? null : _unlock,
+                    icon: const Icon(Icons.fingerprint_rounded),
+                    label: const Text('Unlock'),
+                  ),
+                ],
               ],
-            ]),
+            ),
           ),
         ),
       ),

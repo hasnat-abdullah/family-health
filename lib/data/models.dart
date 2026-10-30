@@ -387,7 +387,12 @@ class Medication {
 
   /// 1-based day number of the course on [day].
   int dayNumber(DateTime day) =>
-      DateTime(day.year, day.month, day.day).difference(DateTime(startDate.year, startDate.month, startDate.day)).inDays + 1;
+      DateTime(
+        day.year,
+        day.month,
+        day.day,
+      ).difference(DateTime(startDate.year, startDate.month, startDate.day)).inDays +
+      1;
 
   /// Scheduled dose times between [from] and [to] (inclusive).
   Iterable<DateTime> slotsBetween(DateTime from, DateTime to) sync* {
@@ -439,10 +444,16 @@ class Medication {
 
 /// Records that a scheduled dose was taken.
 class DoseLog {
-  DoseLog({String? id, required this.medicationId, required this.memberId, required this.slot, int? takenAt, int? updatedAt})
-    : id = id ?? newId(),
-      takenAt = takenAt ?? _now(),
-      updatedAt = updatedAt ?? _now();
+  DoseLog({
+    String? id,
+    required this.medicationId,
+    required this.memberId,
+    required this.slot,
+    int? takenAt,
+    int? updatedAt,
+  }) : id = id ?? newId(),
+       takenAt = takenAt ?? _now(),
+       updatedAt = updatedAt ?? _now();
 
   final String id;
   final String medicationId;
@@ -451,7 +462,8 @@ class DoseLog {
   final int takenAt;
   final int updatedAt;
 
-  static String slotKey(DateTime s) => '${dateToDb(s)}T${s.hour.toString().padLeft(2, '0')}:${s.minute.toString().padLeft(2, '0')}';
+  static String slotKey(DateTime s) =>
+      '${dateToDb(s)}T${s.hour.toString().padLeft(2, '0')}:${s.minute.toString().padLeft(2, '0')}';
 
   Map<String, Object?> toMap() => {
     'id': id,

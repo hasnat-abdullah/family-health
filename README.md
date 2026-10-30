@@ -11,33 +11,51 @@ Private medical records for the whole family, on macOS, iPhone, iPad and Android
 
 ## Screenshots
 
-All screenshots show the made-up demo family.
-
-### macOS
-
-![Home screen on macOS](docs/screenshots/macos_home.png)
-
-| Trend chart | Member health |
-|---|---|
-| ![Trend chart on macOS](docs/screenshots/macos_trend.png) | ![Member health on macOS](docs/screenshots/macos_member.png) |
+All screenshots show the made-up demo family. The first rows show the main workflow: the app reads a photo or PDF on the device and fills in the values it finds, or you type them in, and you check everything against the original before saving.
 
 ### iPhone
 
-| Home | Member health | Trend chart | Medicines | Dark mode |
-|---|---|---|---|---|
-| ![Home on iPhone](docs/screenshots/iphone_home.png) | ![Member health on iPhone](docs/screenshots/iphone_member.png) | ![Trend chart on iPhone](docs/screenshots/iphone_trend.png) | ![Medicines on iPhone](docs/screenshots/iphone_medicines.png) | ![Dark mode on iPhone](docs/screenshots/iphone_trend_dark.png) |
-
-### iPad
-
-| Home | Trend chart | Dark mode |
-|---|---|---|
-| ![Home on iPad](docs/screenshots/ipad_home.png) | ![Trend chart on iPad](docs/screenshots/ipad_trend.png) | ![Dark mode on iPad](docs/screenshots/ipad_trend_dark.png) |
+| | |
+|---|---|
+| ![Photo of a lab report read automatically on iPhone](docs/screenshots/iphone_import_review.png)<br>Photo of a lab report read automatically | ![Values found, out-of-range ones flagged on iPhone](docs/screenshots/iphone_import_values.png)<br>Values found, out-of-range ones flagged |
+| ![Add a record: import, CSV or manual on iPhone](docs/screenshots/iphone_add.png)<br>Add a record: import, CSV or manual | ![Typing results in by hand on iPhone](docs/screenshots/iphone_manual_entry.png)<br>Typing results in by hand |
+| ![Medicine reminder form on iPhone](docs/screenshots/iphone_medicine_form.png)<br>Medicine reminder form | ![Medicines and today's doses on iPhone](docs/screenshots/iphone_medicines.png)<br>Medicines and today's doses |
+| ![Home on iPhone](docs/screenshots/iphone_home.png)<br>Home | ![Member health on iPhone](docs/screenshots/iphone_member.png)<br>Member health |
+| ![Trend chart on iPhone](docs/screenshots/iphone_trend.png)<br>Trend chart | ![Dark mode on iPhone](docs/screenshots/iphone_trend_dark.png)<br>Dark mode |
+| ![Doctor page on iPhone](docs/screenshots/iphone_doctor.png)<br>Doctor page | ![Security & backup on iPhone](docs/screenshots/iphone_backup.png)<br>Security & backup |
 
 ### Android
 
-| Home | Member health | Trend chart | Medicines | Dark mode |
-|---|---|---|---|---|
-| ![Home on Android](docs/screenshots/android_home.png) | ![Member health on Android](docs/screenshots/android_member.png) | ![Trend chart on Android](docs/screenshots/android_trend.png) | ![Medicines on Android](docs/screenshots/android_medicines.png) | ![Dark mode on Android](docs/screenshots/android_trend_dark.png) |
+| | |
+|---|---|
+| ![Photo of a lab report read automatically on Android](docs/screenshots/android_import_review.png)<br>Photo of a lab report read automatically | ![Values found, out-of-range ones flagged on Android](docs/screenshots/android_import_values.png)<br>Values found, out-of-range ones flagged |
+| ![Add a record: import, CSV or manual on Android](docs/screenshots/android_add.png)<br>Add a record: import, CSV or manual | ![Typing results in by hand on Android](docs/screenshots/android_manual_entry.png)<br>Typing results in by hand |
+| ![Medicine reminder form on Android](docs/screenshots/android_medicine_form.png)<br>Medicine reminder form | ![Medicines and today's doses on Android](docs/screenshots/android_medicines.png)<br>Medicines and today's doses |
+| ![Home on Android](docs/screenshots/android_home.png)<br>Home | ![Member health on Android](docs/screenshots/android_member.png)<br>Member health |
+| ![Trend chart on Android](docs/screenshots/android_trend.png)<br>Trend chart | ![Dark mode on Android](docs/screenshots/android_trend_dark.png)<br>Dark mode |
+| ![Doctor page on Android](docs/screenshots/android_doctor.png)<br>Doctor page | ![Security & backup on Android](docs/screenshots/android_backup.png)<br>Security & backup |
+
+### iPad
+
+| | |
+|---|---|
+| ![Photo of a lab report read automatically on iPad](docs/screenshots/ipad_import_review.png)<br>Photo of a lab report read automatically | ![Values found, out-of-range ones flagged on iPad](docs/screenshots/ipad_import_values.png)<br>Values found, out-of-range ones flagged |
+| ![Add a record: import, CSV or manual on iPad](docs/screenshots/ipad_add.png)<br>Add a record: import, CSV or manual | ![Typing results in by hand on iPad](docs/screenshots/ipad_manual_entry.png)<br>Typing results in by hand |
+| ![Medicine reminder form on iPad](docs/screenshots/ipad_medicine_form.png)<br>Medicine reminder form | ![Medicines and today's doses on iPad](docs/screenshots/ipad_medicines.png)<br>Medicines and today's doses |
+| ![Home on iPad](docs/screenshots/ipad_home.png)<br>Home | ![Member health on iPad](docs/screenshots/ipad_member.png)<br>Member health |
+| ![Trend chart on iPad](docs/screenshots/ipad_trend.png)<br>Trend chart | ![Dark mode on iPad](docs/screenshots/ipad_trend_dark.png)<br>Dark mode |
+| ![Doctor page on iPad](docs/screenshots/ipad_doctor.png)<br>Doctor page | ![Security & backup on iPad](docs/screenshots/ipad_backup.png)<br>Security & backup |
+
+### macOS
+
+| | |
+|---|---|
+| ![Photo of a lab report read automatically on macOS](docs/screenshots/macos_import_review.png)<br>Photo of a lab report read automatically | ![Values found, out-of-range ones flagged on macOS](docs/screenshots/macos_import_values.png)<br>Values found, out-of-range ones flagged |
+| ![Add a record: import, CSV or manual on macOS](docs/screenshots/macos_add.png)<br>Add a record: import, CSV or manual | ![Typing results in by hand on macOS](docs/screenshots/macos_manual_entry.png)<br>Typing results in by hand |
+| ![Medicine reminder form on macOS](docs/screenshots/macos_medicine_form.png)<br>Medicine reminder form | ![Medicines and today's doses on macOS](docs/screenshots/macos_medicines.png)<br>Medicines and today's doses |
+| ![Home on macOS](docs/screenshots/macos_home.png)<br>Home | ![Member health on macOS](docs/screenshots/macos_member.png)<br>Member health |
+| ![Trend chart on macOS](docs/screenshots/macos_trend.png)<br>Trend chart | ![Dark mode on macOS](docs/screenshots/macos_trend_dark.png)<br>Dark mode |
+| ![Doctor page on macOS](docs/screenshots/macos_doctor.png)<br>Doctor page | ![Security & backup on macOS](docs/screenshots/macos_backup.png)<br>Security & backup |
 
 ## Features
 
@@ -185,6 +203,7 @@ Failures never lose work. The original is stored first and on-device values stay
 ## Tests
 
 ```sh
+tool/check.sh                                       # project rules, format, analyzer, unit tests and coverage
 flutter test                                        # parser, CSV, medicine schedule, AI client and checks
 flutter test integration_test/data_flow_test.dart -d macos   # one on-device suite
 tool/test_device.sh <device-id> <label> <log-dir>   # every on-device suite on one device
@@ -202,8 +221,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for more, including releases.
 | `lib/screens/`, `lib/widgets/` | UI |
 | `packages/report_ocr/` | small local plugin: Apple Vision (shared Swift for iOS/macOS) and ML Kit (Android) |
 | `integration_test/` | on-device suites and the README screenshot walk |
-| `tool/` | scripts for on-device tests, backups between OSes, and screenshots |
-| `.github/workflows/` | CI, and installable builds for each release |
+| `tool/` | the quality gate, and scripts for on-device tests, backups between OSes, and screenshots |
+| `.claude/`, `.githooks/`, `CLAUDE.md` | hooks, skills and rules for Claude Code, and git hooks: see [CONTRIBUTING.md](CONTRIBUTING.md#working-with-claude-code) |
+| `.github/workflows/` | CI, installable builds for each release, and Claude on GitHub |
 
 ## Things to know
 

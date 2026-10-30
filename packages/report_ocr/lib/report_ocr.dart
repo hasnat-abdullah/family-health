@@ -30,9 +30,7 @@ class ReportOcr {
   /// Recognises text in the image at [path] and returns line-level blocks.
   static Future<List<OcrBlock>> recognize(String path) async {
     final raw = await _channel.invokeListMethod<Object?>('recognize', {'path': path});
-    return (raw ?? const [])
-        .map((e) => OcrBlock.fromMap(e as Map<Object?, Object?>))
-        .toList();
+    return (raw ?? const []).map((e) => OcrBlock.fromMap(e as Map<Object?, Object?>)).toList();
   }
 
   /// Rebuilds visual rows from blocks so table-style lab reports read as
@@ -55,9 +53,6 @@ class ReportOcr {
       }
       rows.add([block]);
     }
-    return [
-      for (final row in rows)
-        (row..sort((a, b) => a.left.compareTo(b.left))).map((b) => b.text).join('   '),
-    ];
+    return [for (final row in rows) (row..sort((a, b) => a.left.compareTo(b.left))).map((b) => b.text).join('   ')];
   }
 }

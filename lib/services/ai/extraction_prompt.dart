@@ -46,7 +46,9 @@ const pingSchema = <String, Object?>{
   'additionalProperties': false,
 };
 
-const _text = <String, Object?>{'type': ['string', 'null']};
+const _text = <String, Object?>{
+  'type': ['string', 'null'],
+};
 
 Map<String, Object?> _object(Map<String, Object?> properties) => {
   'type': 'object',
@@ -71,27 +73,38 @@ final extractionSchema = _object({
   'patient': _object({'name_printed': _text, 'age_printed': _text, 'sex_printed': _text}),
   'other_patients': _list({'type': 'string'}),
   'facility': _text,
-  'doctor': _object({'name_printed': _text, 'specialty_printed': _text, 'hospital_printed': _text, 'phone_printed': _text}),
-  'lab_results': _list(_object({
-    'test_name_printed': {'type': 'string'},
-    'value_printed': _text,
-    'unit_printed': _text,
-    'reference_range_printed': _text,
-    'flag_printed': _text,
-    'legible': {'type': 'boolean'},
-    'source_text': _text,
-  })),
-  'medicines': _list(_object({
-    'name_printed': {'type': 'string'},
-    'strength_printed': _text,
-    'schedule_printed': _text,
-    'duration_printed': _text,
-    'instructions_printed': _text,
-    'legible': {'type': 'boolean'},
-    'source_text': _text,
-  })),
+  'doctor': _object({
+    'name_printed': _text,
+    'specialty_printed': _text,
+    'hospital_printed': _text,
+    'phone_printed': _text,
+  }),
+  'lab_results': _list(
+    _object({
+      'test_name_printed': {'type': 'string'},
+      'value_printed': _text,
+      'unit_printed': _text,
+      'reference_range_printed': _text,
+      'flag_printed': _text,
+      'legible': {'type': 'boolean'},
+      'source_text': _text,
+    }),
+  ),
+  'medicines': _list(
+    _object({
+      'name_printed': {'type': 'string'},
+      'strength_printed': _text,
+      'schedule_printed': _text,
+      'duration_printed': _text,
+      'instructions_printed': _text,
+      'legible': {'type': 'boolean'},
+      'source_text': _text,
+    }),
+  ),
   'notes_printed': _text,
   'follow_up_printed': _text,
   'follow_up_date': _text,
-  'follow_up_days': {'type': ['integer', 'null']},
+  'follow_up_days': {
+    'type': ['integer', 'null'],
+  },
 });

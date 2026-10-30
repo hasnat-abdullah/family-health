@@ -1,9 +1,12 @@
-# Builds every installable file. Pushing a tag like v1.2.0 publishes them as a
-# GitHub Release; running it by hand only leaves them as workflow artifacts.
+# Tests, then builds every installable file. Landing a new pubspec.yaml version
+# on main, or pushing a tag like v1.2.0, publishes them as a GitHub Release;
+# running it by hand only leaves them as workflow artifacts.
 name: Release
 
 on:
   push:
+    branches: [main]
+    paths: [pubspec.yaml]
     tags: ['v*']
   workflow_dispatch:
 
@@ -20,12 +23,14 @@ jobs:
     outputs:
       name: ${{ steps.version.outputs.name }}
       number: ${{ github.run_number }}
+      skip: ${{ steps.version.outputs.skip }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: version
         env:
           REF_TYPE: ${{ github.ref_type }}
           REF_NAME: ${{ github.ref_name }}
+          EVENT: ${{ github.event_name }}
         run: |
           pubspec=$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)
           name=$pubspec
@@ -35,13 +40,33 @@ jobs:
               "$pubspec"|"$pubspec"-*) ;;
               *) echo "::error::Tag $REF_NAME does not match pubspec.yaml version $pubspec"; exit 1;;
             esac
+          elif [ "$EVENT" = push ] && git ls-remote --exit-code --tags origin "refs/tags/v$name" > /dev/null; then
+            # pubspec.yaml changed but the version didn't, like a dependency bump.
+            echo "v$name is already released, nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
           echo "name=$name" >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    needs: version
+    if: needs.version.outputs.skip != 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
 
   android:
     name: Android
     runs-on: ubuntu-latest
-    needs: version
+    needs: [version, test]
     env:
       BUILD: --build-name=${{ needs.version.outputs.name }} --build-number=${{ needs.version.outputs.number }}
       VERSION: ${{ needs.version.outputs.name }}
@@ -63,8 +88,13 @@ jobs:
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          EVENT: ${{ github.event_name }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
+            if [ "$EVENT" = push ]; then
+              echo "::error::No signing secrets: a debug-signed release couldn't be updated by later ones."
+              exit 1
+            fi
             echo "::warning::No signing secrets: Android builds use a throwaway debug key."
             exit 0
           fi
@@ -96,7 +126,7 @@ jobs:
   apple:
     name: macOS and iOS
     runs-on: macos-26
-    needs: version
+    needs: [version, test]
     env:
       BUILD: --build-name=${{ needs.version.outputs.name }} --build-number=${{ needs.version.outputs.number }}
       VERSION: ${{ needs.version.outputs.name }}
@@ -128,9 +158,9 @@ jobs:
 
   publish:
     name: Publish GitHub Release
-    if: github.ref_type == 'tag'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [android, apple]
+    needs: [version, android, apple]
     permissions:
       contents: write
     steps:
@@ -143,6 +173,8 @@ jobs:
         run: sha256sum * > SHA256SUMS.txt
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
+          tag_name: v${{ needs.version.outputs.name }}
+          target_commitish: ${{ github.sha }}
           files: dist/*
           generate_release_notes: true
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(needs.version.outputs.name, '-') }}

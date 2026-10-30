@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+
 import 'dart:io';
 
 import 'package:sqflite_sqlcipher/sqflite.dart';
@@ -189,15 +190,22 @@ class AppDb {
   Future<List<MemberSummary>> memberSummaries() async {
     final list = await members();
     final today = DateTime.now();
-    return Future.wait(list.map((m) async {
-      final stats = await _db.rawQuery(
-        'SELECT COUNT(*) AS n, MAX(date) AS last FROM reports WHERE member_id = ?',
-        [m.id],
-      );
-      final last = stats.first['last'] as String?;
-      final meds = (await medications(memberId: m.id)).where((x) => x.isActiveOn(today)).length;
-      return MemberSummary(m, stats.first['n'] as int, last == null ? null : dateFromDb(last), await attention(m.id), meds);
-    }));
+    return Future.wait(
+      list.map((m) async {
+        final stats = await _db.rawQuery('SELECT COUNT(*) AS n, MAX(date) AS last FROM reports WHERE member_id = ?', [
+          m.id,
+        ]);
+        final last = stats.first['last'] as String?;
+        final meds = (await medications(memberId: m.id)).where((x) => x.isActiveOn(today)).length;
+        return MemberSummary(
+          m,
+          stats.first['n'] as int,
+          last == null ? null : dateFromDb(last),
+          await attention(m.id),
+          meds,
+        );
+      }),
+    );
   }
 
   Future<void> saveMember(Member m) async {
@@ -232,16 +240,21 @@ class AppDb {
 
   Future<List<DoctorSummary>> doctorSummaries() async {
     final people = {for (final m in await members()) m.id: m};
-    return Future.wait((await doctors()).map((d) async {
-      final rows = await _db.query('reports', columns: ['member_id', 'date'], where: 'doctor_id = ?', whereArgs: [d.id], orderBy: 'date DESC');
-      final patients = rows.map((r) => r['member_id'] as String).toSet();
-      return DoctorSummary(
-        d,
-        rows.length,
-        rows.isEmpty ? null : dateFromDb(rows.first['date'] as String),
-        [for (final id in patients) ?people[id]],
-      );
-    }));
+    return Future.wait(
+      (await doctors()).map((d) async {
+        final rows = await _db.query(
+          'reports',
+          columns: ['member_id', 'date'],
+          where: 'doctor_id = ?',
+          whereArgs: [d.id],
+          orderBy: 'date DESC',
+        );
+        final patients = rows.map((r) => r['member_id'] as String).toSet();
+        return DoctorSummary(d, rows.length, rows.isEmpty ? null : dateFromDb(rows.first['date'] as String), [
+          for (final id in patients) ?people[id],
+        ]);
+      }),
+    );
   }
 
   Future<void> saveDoctor(Doctor d) async {
@@ -336,11 +349,8 @@ class AppDb {
     _changed();
   }
 
-  Future<List<Attachment>> attachments(String reportId) async => (await _db.query(
-    'attachments',
-    where: 'report_id = ?',
-    whereArgs: [reportId],
-  )).map(Attachment.fromMap).toList();
+  Future<List<Attachment>> attachments(String reportId) async =>
+      (await _db.query('attachments', where: 'report_id = ?', whereArgs: [reportId])).map(Attachment.fromMap).toList();
 
   Future<Map<String, int>> attachmentCounts(String memberId) async {
     final rows = await _db.rawQuery(
@@ -375,12 +385,15 @@ class AppDb {
 
   /// Latest result of every test that is currently out of range, newest first.
   Future<List<TestResult>> attention(String memberId) async {
-    final rows = await _db.rawQuery('''
+    final rows = await _db.rawQuery(
+      '''
       SELECT r.* FROM results r
       WHERE r.member_id = ? AND r.value IS NOT NULL
         AND r.date = (SELECT MAX(r2.date) FROM results r2 WHERE r2.member_id = r.member_id AND r2.test_key = r.test_key)
         AND ((r.ref_low IS NOT NULL AND r.value < r.ref_low) OR (r.ref_high IS NOT NULL AND r.value > r.ref_high))
-      ORDER BY r.date DESC, r.rowid''', [memberId]);
+      ORDER BY r.date DESC, r.rowid''',
+      [memberId],
+    );
     // Same test twice on the latest date: keep one.
     final seen = <String>{};
     return [
@@ -428,7 +441,9 @@ class AppDb {
     final key = DoseLog.slotKey(slot);
     if (taken) {
       final exists = await _db.query('dose_logs', where: 'medication_id = ? AND slot = ?', whereArgs: [m.id, key]);
-      if (exists.isEmpty) await _db.insert('dose_logs', DoseLog(medicationId: m.id, memberId: m.memberId, slot: slot).toMap());
+      if (exists.isEmpty) {
+        await _db.insert('dose_logs', DoseLog(medicationId: m.id, memberId: m.memberId, slot: slot).toMap());
+      }
     } else {
       await _db.delete('dose_logs', where: 'medication_id = ? AND slot = ?', whereArgs: [m.id, key]);
     }
@@ -466,7 +481,11 @@ class AppDb {
           if (existing.isNotEmpty && (existing.first['updated_at'] as int) >= (row['updated_at'] as int)) continue;
           if (table == 'dose_logs') {
             // Same dose logged on both devices under different ids.
-            final dup = await txn.query(table, where: 'medication_id = ? AND slot = ?', whereArgs: [row['medication_id'], row['slot']]);
+            final dup = await txn.query(
+              table,
+              where: 'medication_id = ? AND slot = ?',
+              whereArgs: [row['medication_id'], row['slot']],
+            );
             if (dup.isNotEmpty) continue;
           }
           await _upsert(txn, table, row);
