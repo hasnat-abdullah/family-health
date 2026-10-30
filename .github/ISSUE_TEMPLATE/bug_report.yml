@@ -1,0 +1,34 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "**Don't attach real medical reports, names or API keys.** Remove personal details first, or retype the relevant lines. For security problems, see [SECURITY.md](../blob/main/SECURITY.md) instead."
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: [macOS, iPhone, iPad, Android]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App and OS version
+      placeholder: 1.0.0 on iOS 18.5
+    validations:
+      required: true
