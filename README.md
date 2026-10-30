@@ -136,6 +136,8 @@ flutter build apk --release          # build: build/app/outputs/flutter-apk/app-
 flutter install -d <device-id>       # install that build
 ```
 
+Building an app bundle (`flutter build appbundle`) also needs **Android SDK Command-line Tools**, which you can add in Android Studio's SDK Manager.
+
 ### iPhone and iPad
 
 For a simulator, no account is needed:
