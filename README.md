@@ -63,13 +63,13 @@ iPhone, iPad and Android run the same app. These are from iPhone.
 
 ## Install
 
-Download the file for your device from the [latest release](https://github.com/hasnat-abdullah/family-health/releases/latest). `SHA256SUMS.txt` lists a checksum for each one.
+Every platform has its own release on the [releases page](https://github.com/hasnat-abdullah/family-health/releases), tagged with the platform name and version, like `android-v1.0.0`. Download the file for your device from its release. `SHA256SUMS.txt` lists a checksum for it.
 
-| Device | Needs | File |
-|---|---|---|
-| Mac (Apple silicon or Intel) | macOS 12 or later | `FamilyHealth-<version>-macos.dmg` |
-| iPhone and iPad | iOS/iPadOS 15 or later | `FamilyHealth-<version>-ios-unsigned.ipa` |
-| Android phone or tablet | Android 7.0 or later | `FamilyHealth-<version>-android-arm64.apk` for most devices, or `-universal.apk` if unsure |
+| Device | Needs | Release | File |
+|---|---|---|---|
+| Mac (Apple silicon or Intel) | macOS 12 or later | [`macos-v…`](https://github.com/hasnat-abdullah/family-health/releases?q=macos-v) | `FamilyHealth-<version>-macos.dmg` |
+| iPhone and iPad | iOS/iPadOS 15 or later | [`ios-v…`](https://github.com/hasnat-abdullah/family-health/releases?q=ios-v) | `FamilyHealth-<version>-ios-unsigned.ipa` |
+| Android phone or tablet | Android 7.0 or later, 64-bit (nearly every phone since 2017) | [`android-v…`](https://github.com/hasnat-abdullah/family-health/releases?q=android-v) | `FamilyHealth-<version>-android-arm64.apk` |
 
 Your records stay on the device. Use **Security & backup** to export a `.medarchive` backup before you reinstall or move to a new device.
 
@@ -95,7 +95,7 @@ After installing an update, macOS asks once for your login password so the new b
 2. Allow your browser or file manager to install unknown apps when asked.
 3. Tap **Install**.
 
-Later releases install over the old one. Stay with the same kind of APK when updating: Android won't let you switch from an `arm64` APK to a `universal` one without uninstalling first, so export a backup before you do.
+Later releases install over the old one.
 
 ### iPhone and iPad
 

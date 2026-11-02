@@ -43,7 +43,7 @@ CI runs `tool/check.sh`, so if it passes here, the same checks pass there.
 - Fix a bug by first writing a test that fails. Parsing, units, dates, schedules, crypto and backup merge all need tests.
 - Follow the code around you. Keep comments rare and about why. No new dependency without saying why it's needed, and it must not phone home.
 - User-visible text is plain and short. Update `README.md` when behaviour it describes changes, and add notable changes to `CHANGELOG.md`.
-- A new `version:` in `pubspec.yaml` publishes a release as soon as it reaches `main`. Only change it through `/release`.
+- Every merge to `main` that changes the app publishes a release for each platform, with the next patch version. `version:` in `pubspec.yaml` sets only major and minor, so change it only through `/release`.
 - When UI changes, run it. Tests don't show whether a screen looks right.
 
 Done means `tool/check.sh` passes and you've said what you tested and what you couldn't. Claude Code's Stop hook runs the gate too. Don't work around a guard or hook: if one is wrong, say so and change it in the open.

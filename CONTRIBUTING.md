@@ -27,7 +27,7 @@ Open a pull request against `main`. CI runs `tool/check.sh` and lints the script
 
 | Check | What it does |
 |---|---|
-| guards | `tool/repo_guards.sh`: the network is used only by the AI client, AI requests can't reach family data, no secrets or keystores, every table has a UUID and `updated_at`, actions are pinned, and each version has a changelog entry |
+| guards | `tool/repo_guards.sh`: the network is used only by the AI client, AI requests can't reach family data, no secrets or keystores, every table has a UUID and `updated_at`, actions are pinned, and the pubspec version has a changelog entry |
 | harness | `tool/test_harness.sh`: proves the guards and agent hooks still catch what they should |
 | format | `dart format`, at 120 columns |
 | analyze | `flutter analyze` |
@@ -47,7 +47,7 @@ The repository is set up for [Claude Code](https://claude.com/product/claude-cod
   | `/run-app` | run the demo family and look at a change |
   | `/review-change` | run the right reviewers for what changed |
   | `/ship` | go from the working tree to a pull request |
-  | `/release` | publish a version |
+  | `/release` | start a new minor or major version |
   | `/fix-ci` | find and fix why a run failed |
   | `/triage-issue` | work through a bug report |
   | `/schema-change` | change what the app stores, through migration and backups |
@@ -75,16 +75,17 @@ tool/cross_os.sh <log-dir> mac=macos android=emulator-5554  # backups exchanged 
 
 ## Making a release
 
-1. Update `version` in `pubspec.yaml` and add a section to `CHANGELOG.md`.
-2. Merge or push that to `main`.
+Nothing to do: every merge to `main` that changes the app (`lib/`, `packages/`, `android/`, `ios/`, `macos/` or the pubspec files) publishes a release. Docs, tests, tooling and workflow changes don't.
 
-When `pubspec.yaml` reaches `main` with a version that has no tag yet, the [Release workflow](.github/workflows/release.yml) runs the analyzer and tests, builds every installable file, and publishes a GitHub Release with checksums, creating the tag itself. Other `pubspec.yaml` changes, like dependency bumps, don't release anything. A failed run can be re-run from the Actions tab.
+The [Release workflow](.github/workflows/release.yml) runs the analyzer and tests, then builds each platform on its own and publishes a separate GitHub Release and tag for it: `android-v1.0.3`, `macos-v1.0.3` and `ios-v1.0.3`, each with checksums. A platform whose build fails doesn't hold back the others, and a failed run can be re-run from the Actions tab.
 
-Versions with a suffix, like `1.1.0-beta.1`, become pre-releases. You can also push a tag by hand: it must match `pubspec.yaml`, though it may add a suffix. To try the build without publishing, run the workflow by hand from the Actions tab; the files appear as artifacts.
+The version is `major.minor` from `version:` in `pubspec.yaml`, plus a patch number that goes up by one for each release, starting at 0. To move to a new minor or major version, use `/release`, which changes `pubspec.yaml` and `CHANGELOG.md` and opens a pull request. Releasing creates tags by itself, so don't push release tags by hand.
+
+To try the builds without publishing, run the workflow by hand from the Actions tab; the files appear as artifacts. The Android job also leaves its `android-symbols` artifact: keep it, because it's needed to read stack traces from the obfuscated release build (`flutter symbolize`).
 
 ## Android signing
 
-Installed apps only accept updates signed by the same key. Releases are signed with the key in these repository secrets, and publishing fails without them:
+Installed apps only accept updates signed by the same key. Releases are signed with the key in these repository secrets, and the Android release fails without them:
 
 | Secret | Value |
 |---|---|
