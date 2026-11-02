@@ -77,11 +77,11 @@ tool/cross_os.sh <log-dir> mac=macos android=emulator-5554  # backups exchanged 
 
 Nothing to do: every merge to `main` that changes the app (`lib/`, `packages/`, `android/`, `ios/`, `macos/` or the pubspec files) publishes a release. Docs, tests, tooling and workflow changes don't.
 
-The [Release workflow](.github/workflows/release.yml) runs the analyzer and tests, then builds each platform on its own and publishes a separate GitHub Release and tag for it: `android-v1.0.3`, `macos-v1.0.3` and `ios-v1.0.3`, each with checksums. A platform whose build fails doesn't hold back the others, and a failed run can be re-run from the Actions tab.
+The [Release workflow](.github/workflows/release.yml) runs the analyzer and tests, then builds each platform on its own and publishes a separate GitHub Release and tag for it: `android-v1.0.3`, `macos-v1.0.3` and `ios-v1.0.3`, each with checksums. A platform whose build fails doesn't hold back the others, and re-run only the failed jobs from the Actions tab, because re-running everything works out a new version and releases the same commit again.
 
 The version is `major.minor` from `version:` in `pubspec.yaml`, plus a patch number that goes up by one for each release, starting at 0. To move to a new minor or major version, use `/release`, which changes `pubspec.yaml` and `CHANGELOG.md` and opens a pull request. Releasing creates tags by itself, so don't push release tags by hand.
 
-To try the builds without publishing, run the workflow by hand from the Actions tab; the files appear as artifacts. The Android job also leaves its `android-symbols` artifact: keep it, because it's needed to read stack traces from the obfuscated release build (`flutter symbolize`).
+To try the builds without publishing, run the workflow by hand from the Actions tab; the files appear as artifacts. The Android job also leaves an `android-symbols-<version>` artifact that expires after 90 days: download and keep it, because it's needed to read stack traces from the obfuscated release build (`flutter symbolize`).
 
 ## Android signing
 
