@@ -1,17 +1,30 @@
-# Tests, then builds every installable file. Landing a new pubspec.yaml version
-# on main, or pushing a tag like v1.2.0, publishes them as a GitHub Release;
-# running it by hand only leaves them as workflow artifacts.
+# Tests, then builds and publishes a GitHub Release for each platform. Every
+# merge to main that changes the app releases a new patch version, and each
+# platform has its own release and tag (android-v1.0.1, macos-v1.0.1,
+# ios-v1.0.1), so one failing build doesn't hold back the others. Running it by
+# hand only leaves the files as workflow artifacts.
 name: Release
 
 on:
   push:
     branches: [main]
-    paths: [pubspec.yaml]
-    tags: ['v*']
+    paths:
+      - lib/**
+      - packages/**
+      - android/**
+      - ios/**
+      - macos/**
+      - pubspec.yaml
+      - pubspec.lock
   workflow_dispatch:
 
 permissions:
   contents: read
+
+# One release at a time, so two merges can't pick the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: '3.47.1'
@@ -23,35 +36,21 @@ jobs:
     outputs:
       name: ${{ steps.version.outputs.name }}
       number: ${{ github.run_number }}
-      skip: ${{ steps.version.outputs.skip }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: version
-        env:
-          REF_TYPE: ${{ github.ref_type }}
-          REF_NAME: ${{ github.ref_name }}
-          EVENT: ${{ github.event_name }}
+        # pubspec.yaml sets the major and minor number. The patch number is one
+        # more than the highest already released for them, starting at 0.
         run: |
-          pubspec=$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)
-          name=$pubspec
-          if [ "$REF_TYPE" = tag ]; then
-            name=${REF_NAME#v}
-            case "$name" in
-              "$pubspec"|"$pubspec"-*) ;;
-              *) echo "::error::Tag $REF_NAME does not match pubspec.yaml version $pubspec"; exit 1;;
-            esac
-          elif [ "$EVENT" = push ] && git ls-remote --exit-code --tags origin "refs/tags/v$name" > /dev/null; then
-            # pubspec.yaml changed but the version didn't, like a dependency bump.
-            echo "v$name is already released, nothing to do."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
-          echo "name=$name" >> "$GITHUB_OUTPUT"
+          base=$(sed -n 's/^version: \([0-9]*\.[0-9]*\)\..*/\1/p' pubspec.yaml)
+          [ -n "$base" ] || { echo "::error::Can't read the version from pubspec.yaml"; exit 1; }
+          last=$(git ls-remote --tags origin "refs/tags/*-v$base.*" | sed 's/.*-v[0-9]*\.[0-9]*\.//' | grep -E '^[0-9]+$' | sort -n | tail -1)
+          echo "name=$base.$(( ${last:--1} + 1 ))" >> "$GITHUB_OUTPUT"
 
   test:
     name: Analyze and test
     runs-on: ubuntu-latest
     needs: version
-    if: needs.version.outputs.skip != 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -105,26 +104,29 @@ jobs:
             echo "keyPassword=$KEY_PASSWORD"
             echo "keyAlias=$KEY_ALIAS"
           } > android/key.properties
-      - run: flutter build apk --release --build-name="$VERSION" --build-number="$NUMBER"
-      - run: flutter build apk --release --split-per-abi --build-name="$VERSION" --build-number="$NUMBER"
-      - run: flutter build appbundle --release --build-name="$VERSION" --build-number="$NUMBER"
+      # Only arm64: the other ABIs add 38 to 51 MB each. The symbols turn an
+      # obfuscated stack trace back into names, so keep them.
+      - run: >-
+          flutter build apk --release --split-per-abi --target-platform android-arm64
+          --obfuscate --split-debug-info=build/symbols
+          --build-name="$VERSION" --build-number="$NUMBER"
       - name: Collect files
         run: |
           mkdir dist
-          out=build/app/outputs
-          cp $out/flutter-apk/app-release.apk "dist/FamilyHealth-$VERSION-android-universal.apk"
-          cp $out/flutter-apk/app-arm64-v8a-release.apk "dist/FamilyHealth-$VERSION-android-arm64.apk"
-          cp $out/flutter-apk/app-armeabi-v7a-release.apk "dist/FamilyHealth-$VERSION-android-armv7.apk"
-          cp $out/flutter-apk/app-x86_64-release.apk "dist/FamilyHealth-$VERSION-android-x86_64.apk"
-          cp $out/bundle/release/app-release.aab "dist/FamilyHealth-$VERSION-android.aab"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/FamilyHealth-$VERSION-android-arm64.apk"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: android
           path: dist/
           if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-symbols-${{ needs.version.outputs.name }}
+          path: build/symbols/
+          if-no-files-found: error
 
-  apple:
-    name: macOS and iOS
+  macos:
+    name: macOS
     runs-on: macos-26
     needs: [version, test]
     env:
@@ -144,37 +146,87 @@ jobs:
           cp -R "build/macos/Build/Products/Release/Family Health.app" dmg/
           ln -s /Applications dmg/Applications
           hdiutil create -volname "Family Health" -srcfolder dmg -format UDZO "dist/FamilyHealth-$VERSION-macos.dmg"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos
+          path: dist/
+          if-no-files-found: error
+
+  ios:
+    name: iOS
+    runs-on: macos-26
+    needs: [version, test]
+    env:
+      VERSION: ${{ needs.version.outputs.name }}
+      NUMBER: ${{ needs.version.outputs.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
       - run: flutter build ios --release --no-codesign --build-name="$VERSION" --build-number="$NUMBER"
       - name: Package unsigned iOS app
         run: |
-          mkdir Payload
+          mkdir -p dist Payload
           cp -R build/ios/iphoneos/Runner.app Payload/
           zip -qry "dist/FamilyHealth-$VERSION-ios-unsigned.ipa" Payload
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: apple
+          name: ios
           path: dist/
           if-no-files-found: error
 
   publish:
-    name: Publish GitHub Release
-    if: github.event_name == 'push'
+    name: Publish ${{ matrix.title }} release
+    # always() keeps this running when another platform's build failed.
+    if: ${{ always() && github.event_name == 'push' }}
     runs-on: ubuntu-latest
-    needs: [version, android, apple]
+    needs: [version, android, macos, ios]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            title: Android
+          - platform: macos
+            title: macOS
+          - platform: ios
+            title: iOS
     permissions:
       contents: write
     steps:
+      - name: Check this platform built
+        env:
+          RESULT: ${{ needs[matrix.platform].result }}
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          if [ "$RESULT" != success ]; then
+            echo "::error::The $PLATFORM build did not succeed, so nothing is published for it."
+            exit 1
+          fi
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
+          name: ${{ matrix.platform }}
           path: dist
-          merge-multiple: true
       - name: Write checksums
         working-directory: dist
         run: sha256sum ./* > SHA256SUMS.txt
-      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
-        with:
-          tag_name: v${{ needs.version.outputs.name }}
-          target_commitish: ${{ github.sha }}
-          files: dist/*
-          generate_release_notes: true
-          prerelease: ${{ contains(needs.version.outputs.name, '-') }}
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PLATFORM: ${{ matrix.platform }}
+          TITLE: ${{ matrix.title }}
+          VERSION: ${{ needs.version.outputs.name }}
+        run: |
+          # Notes start from this platform's last release, not another one's.
+          prev=$(gh release list --limit 100 --json tagName --jq "[.[].tagName | select(startswith(\"$PLATFORM-v\"))][0] // empty")
+          args=()
+          if [ -n "$prev" ]; then args+=(--notes-start-tag "$prev"); fi
+          gh release create "$PLATFORM-v$VERSION" dist/* \
+            --target "$GITHUB_SHA" \
+            --title "Family Health $VERSION for $TITLE" \
+            --generate-notes \
+            "${args[@]}"
