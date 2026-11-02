@@ -41,6 +41,13 @@ android {
         versionName = flutter.versionName
     }
 
+    packaging {
+        // Stores the native libraries compressed, which halves the download.
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     signingConfigs {
         if (keystorePropertiesFile.exists()) {
             create("release") {
